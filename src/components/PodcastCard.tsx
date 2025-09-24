@@ -1,4 +1,3 @@
-// src/components/PodcastCard.tsx
 import "./PodcastCard.css";
 
 interface PodcastCardProps {

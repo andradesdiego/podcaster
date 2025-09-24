@@ -1,4 +1,3 @@
-// src/components/__tests__/PodcastCard.test.tsx
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { PodcastCard } from "../PodcastCard";
