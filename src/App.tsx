@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 
-type TopFeed = unknown;
+type podcast = {
+  "im:name": string;
+};
 
 function App() {
-  const [data, setData] = useState<TopFeed | null>(null);
+  const [data, setData] = useState<podcast[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -14,7 +16,7 @@ function App() {
       .then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const json = await r.json();
-        if (!cancelled) setData(json);
+        if (!cancelled) setData(json.feed.entry);
       })
       .catch((e: unknown) => {
         if (!cancelled) setError((e as Error).message);
@@ -41,7 +43,16 @@ function App() {
             padding: 16,
           }}
         >
-          {JSON.stringify(data, null, 2)}
+          {data && (
+            <ul>
+              {data.map((pod: any) => (
+                <li key={pod.id.attributes["im:id"]}>
+                  <strong>{pod["im:name"].label}</strong> —{" "}
+                  {pod["im:artist"].label}
+                </li>
+              ))}
+            </ul>
+          )}
         </pre>
       )}
     </main>
