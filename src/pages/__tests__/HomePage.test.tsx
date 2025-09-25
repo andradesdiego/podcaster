@@ -1,13 +1,14 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { HomePage } from "../HomePage";
+import { ApiResponse } from "../../types/podcast";
 
 // Mock global fetch
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 // Mock data similar to iTunes API response
-const mockApiResponse = {
+const mockApiResponse: ApiResponse = {
   feed: {
     entry: [
       {
@@ -83,6 +84,37 @@ describe("HomePage", () => {
     });
   });
 
+  it("shows error message when API call fails", async () => {
+    mockFetch.mockRejectedValueOnce(new Error("Network error"));
+
+    render(<HomePage />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Error al cargar los podcasts: Network error/)
+      ).toBeInTheDocument();
+    });
+
+    // Should not show loading or content
+    expect(screen.queryByText("Cargando podcasts...")).not.toBeInTheDocument();
+    expect(screen.queryByText("TEST PODCAST 1")).not.toBeInTheDocument();
+  });
+
+  it("shows error message when API returns error status", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 404,
+    });
+
+    render(<HomePage />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Error al cargar los podcasts: HTTP 404/)
+      ).toBeInTheDocument();
+    });
+  });
+
   it("handles empty podcast data gracefully", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -138,7 +170,7 @@ describe("HomePage", () => {
   });
 
   it("falls back to last image when 170px not available", async () => {
-    const mockDataWithoutMedium = {
+    const mockDataWithoutMedium: ApiResponse = {
       feed: {
         entry: [
           {
