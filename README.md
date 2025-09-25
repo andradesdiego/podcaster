@@ -1,48 +1,107 @@
 # Podcaster App
 
-Una aplicación de podcasts musicales desarrollada con React, TypeScript y Vite. Permite visualizar los 100 podcasts más populares de iTunes con un diseño moderno y responsive.
+Una aplicación de podcasts musicales desarrollada con React, TypeScript y Vite. Permite navegar y buscar entre los 100 podcasts más populares de iTunes con funcionalidades de filtrado en tiempo real y un sistema de caché inteligente.
 
-## 🚀 Demo
+## 🚀 Funcionalidades Actuales
 
-La aplicación muestra una vista principal con tarjetas de podcasts que incluyen:
+La aplicación proporciona una experiencia completa de navegación de podcasts:
 
-- Imagen circular flotante del podcast
-- Título en mayúsculas
-- Nombre del autor
-- Diseño responsive con grid adaptativo
+- Navegación por los 100 podcasts musicales más populares con grid responsive
+- Búsqueda en tiempo real por título y autor
+- Sistema de caché inteligente de 24 horas
+- Imágenes circulares flotantes de podcasts
+- UI moderna y limpia construida completamente desde cero
 
 ## 🛠️ Stack Tecnológico
 
 - **Frontend**: React 18.3.1 + TypeScript 5.9.2
 - **Build Tool**: Vite 5.4.10
+- **Routing**: React Router Dom 6.20.1
 - **Testing**: Vitest 1.0.4 + Testing Library
 - **Styling**: CSS Modules + Variables CSS
+- **Estado**: Context API con useReducer
+- **Caché**: localStorage con validación TTL
 - **Linting**: ESLint + Prettier
 - **Node.js**: 20.x LTS
 
-## 📁 Estructura del Proyecto
+## 🏗️ Arquitectura
+
+### Gestión de Estado
+
+Utiliza Context API para gestión de estado global con caché inteligente:
+
+```
+PodcastContext
+├── Datos globales de podcasts
+├── Estados de loading/error
+├── Caché de 24h con TTL
+└── Validación automática de caché
+```
+
+### Estructura de Componentes
 
 ```
 src/
-├── components/           # Componentes reutilizables
-│   ├── Layout.tsx       # Layout principal con header
-│   ├── Layout.css
+├── components/           # Componentes UI reutilizables
+│   ├── Layout.tsx       # Layout de app con header sticky
 │   ├── PodcastCard.tsx  # Tarjeta individual de podcast
-│   ├── PodcastCard.css
-│   └── __tests__/       # Tests de componentes
-├── pages/               # Páginas/Vistas
-│   ├── HomePage.tsx     # Vista principal con listado
-│   ├── HomePage.css
-│   └── __tests__/       # Tests de páginas
-├── styles/              # Estilos globales
-│   ├── variables.css    # Variables CSS
-│   └── base.css         # Reset y estilos base
-├── test/                # Utilidades de testing
-│   ├── setup.ts
-│   └── test-utils.tsx
-├── App.tsx              # Componente raíz
-└── App.css              # Estilos principales
+│   └── SearchInput.tsx  # Búsqueda con funcionalidad clear
+├── pages/               # Componentes de ruta
+│   └── HomePage.tsx     # Vista principal del grid de podcasts
+├── context/             # Gestión de estado global
+│   └── PodcastContext.tsx # Proveedor de context con caché
+├── hooks/               # Custom hooks de React
+│   └── usePodcastFilter.ts # Lógica de búsqueda en tiempo real
+├── types/               # Definiciones TypeScript
+│   └── podcast.ts       # Tipos de respuesta API
+└── styles/              # Estilos globales
+    ├── variables.css    # Tokens del sistema de diseño
+    └── base.css         # Reset CSS + estilos base
 ```
+
+### Integración API
+
+- **API iTunes**: Endpoint top podcasts con proxy CORS
+- **Estrategia Caché**: localStorage con validación timestamp
+- **Performance**: Cache-first con TTL 24h reduce llamadas API
+
+## 🎨 Sistema de Diseño
+
+### Variables CSS
+
+Tokens de diseño centralizados para consistencia:
+
+```css
+/* Colores */
+--color-bg: #ffffff;
+--color-bg-alt: #f9f9f9;
+--color-text: #111111;
+--color-accent: #0070f3;
+
+/* Tipografía */
+--font-base: system-ui, sans-serif;
+--font-size-base: 16px;
+
+/* Layout */
+--radius-card: 1rem;
+--spacing-md: 1rem;
+```
+
+### Grid Responsive
+
+Layout adaptativo optimizado para todos los dispositivos:
+
+- **Móvil** (≤640px): 2 columnas, padding reducido
+- **Tablet** (641-1024px): 3 columnas
+- **Desktop** (1025-1399px): 4 columnas
+- **Desktop Grande** (≥1400px): 5 columnas
+
+### Diseño de Tarjetas
+
+- Imágenes circulares de podcasts (130px) que flotan sobre las tarjetas
+- Bordes parciales (derecho, inferior, izquierdo solamente)
+- Sombras direccionales (sin sombra superior)
+- Animaciones suaves de hover con translateY
 
 ## ⚡ Comandos Disponibles
 
@@ -51,193 +110,147 @@ src/
 ```bash
 npm run dev          # Servidor de desarrollo (http://localhost:5173)
 npm run build        # Build de producción
-npm run preview      # Preview del build
+npm run preview      # Preview del build de producción
 ```
 
 ### Testing
 
 ```bash
 npm run test         # Tests en modo watch
-npm run test:run     # Tests una sola vez
-npm run test:coverage # Tests con coverage
+npm run test:run     # Ejecución única de tests
+npm run test:coverage # Reporte de cobertura de tests
 ```
 
-### Linting
+### Calidad de Código
 
 ```bash
-npm run lint         # Verificar código
+npm run lint         # Verificación ESLint
 ```
-
-## 🎨 Arquitectura CSS
-
-### Sistema de Variables
-
-Colores, tipografía y espaciado centralizados en `src/styles/variables.css`:
-
-```css
-:root {
-  /* Colores */
-  --color-bg: #ffffff;
-  --color-bg-alt: #f9f9f9;
-  --color-text: #111111;
-  --color-accent: #0070f3;
-
-  /* Tipografía */
-  --font-base: system-ui, sans-serif;
-  --font-size-base: 16px;
-
-  /* Layout */
-  --radius-card: 1rem;
-  --spacing-md: 1rem;
-}
-```
-
-### Grid Responsive
-
-- **Móvil** (≤640px): 2 columnas
-- **Tablet** (641-1024px): 3 columnas
-- **Desktop** (1025-1399px): 4 columnas
-- **Desktop XL** (≥1400px): 5 columnas
-
-### Características de Diseño
-
-- **Imágenes circulares** de 130px que flotan sobre las tarjetas
-- **Bordes parciales**: solo derecho, inferior e izquierdo
-- **Sombras direccionales**: sin sombra superior
-- **Hover effects** suaves con `translateY`
-
-## 🔧 Configuración API
-
-La aplicación utiliza la API de iTunes para obtener podcasts:
-
-- **Endpoint**: `https://itunes.apple.com/us/rss/toppodcasts/limit=100/genre=1310/json`
-- **Proxy configurado** en Vite para CORS
-- **Cache**: Los datos se almacenan para evitar requests innecesarios
 
 ## ✅ Funcionalidades Implementadas
 
-### ✅ Fase 1-3: Base y Componentes
+### Versión 1.1.0 (Actual)
 
-- [x] Scaffolding con Vite + React + TypeScript
-- [x] Configuración de ESLint, Prettier, Vitest
-- [x] Fetch de datos de la API de iTunes
-- [x] Componente PodcastCard con diseño personalizado
-- [x] Layout responsive con Grid CSS
-- [x] Arquitectura de componentes modular
-- [x] Tests unitarios completos
+- Navegación por los 100 podcasts musicales más populares de la API iTunes
+- Filtrado de búsqueda en tiempo real por título y autor
+- Layout de grid responsive con imágenes circulares flotantes
+- Context API para gestión de estado global
+- Sistema de caché inteligente con TTL de 24h
+- React Router para navegación SPA
+- Suite de tests completa (42 tests pasando)
+- Arquitectura CSS moderna con tokens de diseño
 
-### 🔄 En Desarrollo
+### Funcionalidad de Búsqueda
 
-- [ ] **Fase 4**: Filtrado y búsqueda en tiempo real
-- [ ] **Fase 5**: Vista de detalle de podcast
-- [ ] **Fase 6**: Reproductor de episodios
-- [ ] **Fase 7**: Context API para estado global
-- [ ] **Fase 8**: Sistema de cache optimizado
-- [ ] **Fase 9**: Routing con React Router
+- **Filtrado en tiempo real**: Los resultados se actualizan mientras escribes
+- **Búsqueda multi-campo**: Busca tanto en título como en autor
+- **Case-insensitive**: Funciona independientemente del case del input
+- **Feedback visual**: Contador dinámico de resultados
+- **Funcionalidad clear**: Reset rápido con botón X
+- **Estado sin resultados**: Mensaje útil con opción de reset
 
-## 🧪 Testing
+### Sistema de Caché
 
-### Cobertura de Tests
+- **TTL de 24 horas**: Reduce llamadas innecesarias a la API
+- **Validación timestamp**: Expiración automática de caché
+- **Fallback elegante**: Fetch fresco cuando caché inválido
+- **localStorage**: Persistente a través de sesiones del navegador
+- **Manejo de errores**: Continúa sin caché si no está disponible
 
-- **Layout Component**: Estados de loading, renderizado, CSS classes
-- **HomePage Component**: API calls, estados de error/éxito, manejo de datos
-- **PodcastCard Component**: Props, eventos, renderizado condicional
+### Optimizaciones de Performance
 
-### Estrategia de Testing
+- **useMemo**: Filtrado de búsqueda optimizado
+- **Lazy loading**: Las imágenes cargan progresivamente
+- **Re-renders mínimos**: Optimizaciones de context
+- **Bundle splitting**: Code splitting de Vite
+- **Optimización assets**: Minificación de producción
 
-- **Unit Tests**: Componentes individuales
-- **Integration Tests**: Interacción entre componentes
-- **Mocking**: API calls y dependencias externas
-- **Assertions**: Testing Library + Jest DOM matchers
+## 🧪 Estrategia de Testing
 
-## 📝 Decisiones de Diseño
+Cobertura de tests completa sin over-engineering:
 
-### Componentes desde Cero
+- **Tests de componentes**: Comportamiento UI e interacciones
+- **Tests de hooks**: Lógica custom y casos edge
+- **Tests de context**: Gestión de estado y caché
+- **Tests de integración**: Comunicación entre componentes
+- **42 tests en total**: Enfocados en funcionalidad crítica
 
-Se desarrollan todos los componentes sin librerías UI para:
+## 🛣️ Rutas
 
-- Control total sobre el diseño
-- Menor bundle size
-- Cumplimiento de requisitos del proyecto
-- Demostración de habilidades CSS
+- **`/`**: Homepage con grid de podcasts y búsqueda
+- **`/podcast/:id`**: Detalle de podcast (próximamente)
 
-### Arquitectura Modular
+## 🔄 Enfoque de Desarrollo
 
-- **Separación de responsabilidades** clara
-- **Reutilización** de componentes
-- **Testabilidad** individual
-- **Escalabilidad** futura
+Construido usando estrategia de desarrollo incremental:
 
-### CSS Personalizado
+1. **MVP-1**: Funcionalidad core (search + browse) ✅
+2. **Context + Caché**: Base de estado global ✅
+3. **Detalle Podcast**: Vista individual de podcast (en progreso)
+4. **Reproductor Episodio**: Funcionalidad de reproducción audio
+5. **Refactor DDD**: Implementación arquitectura limpia
 
-- **Variables CSS** para consistency
-- **Grid Layout** nativo para responsive
-- **Flexbox** para alineación
-- **Animations** CSS para UX
+## 📋 Cumplimiento de Requisitos
 
-## 🔮 Próximas Funcionalidades
+- **Sin librerías UI externas**: Todos los componentes construidos desde cero ✅
+- **Context API**: Gestión de estado global según especificado ✅
+- **Caché 24h**: localStorage con validación TTL ✅
+- **URLs limpias**: React Router sin fragmentos hash ✅
+- **TypeScript**: Seguridad de tipos completa ✅
+- **Diseño responsive**: Enfoque mobile-first ✅
+- **Performance**: Rendering y caché optimizados ✅
+- **Testing**: Cobertura completa sin complejidad ✅
 
-1. **Search & Filter**: Input de búsqueda con filtrado en tiempo real
-2. **Routing**: Navegación SPA con React Router
-3. **Podcast Detail**: Vista individual con listado de episodios
-4. **Audio Player**: Reproductor HTML5 integrado
-5. **State Management**: Context API para datos globales
-6. **Cache Strategy**: LocalStorage con TTL de 24h
-7. **Loading States**: Indicadores de carga mejorados
-8. **Error Boundaries**: Manejo de errores robusto
+## 🌐 Soporte de Navegadores
 
-## 🚦 Estados de la Aplicación
+Optimizado para navegadores modernos:
 
-### Loading
-
-- Indicador en header durante fetch
-- Estado de carga en HomePage
-- Skeleton loading (futuro)
-
-### Error Handling
-
-- Errores de red
-- Errores HTTP (404, 500, etc.)
-- Datos malformados
-- Timeout de requests
-
-### Success
-
-- Grid de podcasts responsive
-- Contador de resultados
-- Hover interactions suaves
-
-## 🎯 Criterios de Evaluación Cumplidos
-
-- ✅ **README completo** con arquitectura y decisiones
-- ✅ **Código limpio** siguiendo principios SOLID
-- ✅ **Sin errores de linter** con configuración estricta
-- ✅ **Separación en capas** (components/pages/styles)
-- ✅ **Consola limpia** sin warnings
-- ✅ **CSS desde cero** sin librerías externas
-- ✅ **Commits estándar** con nomenclatura clara
-- ✅ **Tests funcionales** con buena cobertura
-- ✅ **Arquitectura modular** basada en componentes
-- ✅ **TypeScript completo** con tipado estricto
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
 
 ## 🚀 Instalación y Uso
 
 ```bash
-# Clonar el repositorio
-git clone [https://github.com/andradesdiego/podcaster.git]
+# Clonar repositorio
+git clone [repository-url]
 cd podcaster
 
 # Instalar dependencias
 npm install
 
-# Desarrollo
+# Iniciar servidor de desarrollo
 npm run dev
 
-# Testing
+# Ejecutar tests
+npm test
+
+# Build para producción
+npm run build
+```
+
+## 🔀 Workflow de Desarrollo
+
+Utiliza estrategia de feature branches con releases incrementales:
+
+- `main`: Releases listos para producción con tags
+- `develop`: Branch de integración para features
+- `feat/*`: Desarrollo de features individuales
+
+**Actual**: Preparando `feat/podcast-detail` para vistas individuales de podcasts.
+
+---
+
+**Versión**: 1.1.0 (Context + Routing)
+**Última Actualización**: Septiembre 2025
+**Estado**: Listo para implementación de detalle de podcast
 npm test
 
 # Build
+
 npm run build
+
 ```
 
 ## 🔗 Enlaces Útiles
@@ -248,3 +261,5 @@ npm run build
 - [iTunes API](https://affiliate.itunes.apple.com/resources/documentation/itunes-store-web-service-search-api/)
 
 ---
+
+```
