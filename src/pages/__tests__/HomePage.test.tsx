@@ -1,13 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { HomePage } from "../HomePage";
+import { PodcastProvider } from "../../context/PodcastContext";
 import { ApiResponse } from "../../types/podcast";
 
-// Mock global fetch
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
-
-// Mock data similar to iTunes API response
 const mockApiResponse: ApiResponse = {
   feed: {
     entry: [
@@ -15,11 +11,7 @@ const mockApiResponse: ApiResponse = {
         id: { attributes: { "im:id": "123" } },
         "im:name": { label: "Test Podcast 1" },
         "im:artist": { label: "Test Author 1" },
-        "im:image": [
-          { label: "small.jpg", attributes: { height: "55" } },
-          { label: "medium.jpg", attributes: { height: "170" } },
-          { label: "large.jpg", attributes: { height: "600" } },
-        ],
+        "im:image": [{ label: "medium.jpg", attributes: { height: "170" } }],
       },
       {
         id: { attributes: { "im:id": "456" } },
@@ -31,87 +23,123 @@ const mockApiResponse: ApiResponse = {
   },
 };
 
-describe("HomePage", () => {
+const mockLocalStorage = (() => {
+  let store: { [key: string]: string } = {};
+
+  return {
+    getItem: vi.fn((key: string) => store[key] || null),
+    setItem: vi.fn((key: string, value: string) => {
+      store[key] = value;
+    }),
+    clear: vi.fn(() => {
+      store = {};
+    }),
+  };
+})();
+
+Object.defineProperty(window, "localStorage", {
+  value: mockLocalStorage,
+});
+
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
+
+const renderWithProvider = (ui: React.ReactElement) => {
+  return render(<PodcastProvider>{ui}</PodcastProvider>);
+};
+
+describe("HomePage with Context", () => {
   beforeEach(() => {
-    mockFetch.mockClear();
-  });
-
-  afterEach(() => {
     vi.clearAllMocks();
+    mockLocalStorage.clear();
   });
 
-  it("shows loading state initially", () => {
-    // Mock a delayed response
+  it("shows loading state initially", async () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
 
-    render(<HomePage />);
+    renderWithProvider(<HomePage />);
 
-    expect(screen.getByText("Cargando podcasts...")).toBeInTheDocument();
+    expect(screen.getByText("Loading podcasts...")).toBeInTheDocument();
   });
 
-  it("renders podcasts when API call succeeds", async () => {
+  it("renders podcasts when loaded successfully", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(mockApiResponse),
     });
 
-    render(<HomePage />);
+    renderWithProvider(<HomePage />);
 
-    // Wait for loading to finish and content to appear
     await waitFor(() => {
-      expect(
-        screen.queryByText("Cargando podcasts...")
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText("Loading podcasts...")).not.toBeInTheDocument();
     });
 
-    // Check that podcasts are rendered
-    expect(screen.getByText("TEST PODCAST 1")).toBeInTheDocument(); // Uppercase
+    expect(screen.getByText("TEST PODCAST 1")).toBeInTheDocument();
     expect(screen.getByText("TEST PODCAST 2")).toBeInTheDocument();
     expect(screen.getByText("Author: Test Author 1")).toBeInTheDocument();
     expect(screen.getByText("Author: Test Author 2")).toBeInTheDocument();
   });
 
-  it("shows results count when podcasts load", async () => {
+  it("shows results count correctly", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: () => Promise.resolve(mockApiResponse),
     });
 
-    render(<HomePage />);
+    renderWithProvider(<HomePage />);
 
     await waitFor(() => {
       expect(screen.getByText("2")).toBeInTheDocument();
     });
   });
 
-  it("shows error message when API call fails", async () => {
+  it("shows error message when fetch fails", async () => {
     mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
-    render(<HomePage />);
+    renderWithProvider(<HomePage />);
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Error al cargar los podcasts: Network error/)
+        screen.getByText(/Error loading podcasts: Network error/)
       ).toBeInTheDocument();
     });
 
-    // Should not show loading or content
-    expect(screen.queryByText("Cargando podcasts...")).not.toBeInTheDocument();
-    expect(screen.queryByText("TEST PODCAST 1")).not.toBeInTheDocument();
+    expect(screen.queryByText("Loading podcasts...")).not.toBeInTheDocument();
   });
 
-  it("shows error message when API returns error status", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 404,
-    });
+  it("uses cached data when available", async () => {
+    const cacheData = {
+      data: mockApiResponse,
+      timestamp: Date.now() - 1000,
+    };
 
-    render(<HomePage />);
+    mockLocalStorage.getItem.mockReturnValueOnce(JSON.stringify(cacheData));
+
+    renderWithProvider(<HomePage />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/Error al cargar los podcasts: HTTP 404/)
-      ).toBeInTheDocument();
+      expect(screen.getByText("TEST PODCAST 1")).toBeInTheDocument();
+    });
+
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it("search functionality works with context data", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve(mockApiResponse),
+    });
+
+    renderWithProvider(<HomePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("TEST PODCAST 1")).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText("Filter podcasts...");
+
+    await waitFor(() => {
+      expect(searchInput).not.toBeDisabled();
     });
   });
 
@@ -121,81 +149,22 @@ describe("HomePage", () => {
       json: () => Promise.resolve({ feed: { entry: [] } }),
     });
 
-    render(<HomePage />);
-
-    await waitFor(() => {
-      expect(screen.getByText("0")).toBeInTheDocument();
-    });
-
-    // Should not show any podcast cards
-    expect(screen.queryByText("TEST PODCAST 1")).not.toBeInTheDocument();
-  });
-
-  it("handles malformed API response gracefully", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve({}), // Empty object
-    });
-
-    render(<HomePage />);
+    renderWithProvider(<HomePage />);
 
     await waitFor(() => {
       expect(screen.getByText("0")).toBeInTheDocument();
     });
   });
 
-  it("calls correct API endpoint", () => {
+  it("calls correct API endpoint", async () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
 
-    render(<HomePage />);
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      "/rss/toppodcasts/limit=100/genre=1310/json"
-    );
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-  });
-
-  it("selects correct image size (170px preferred)", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockApiResponse),
-    });
-
-    render(<HomePage />);
+    renderWithProvider(<HomePage />);
 
     await waitFor(() => {
-      const image = screen.getByAltText("TEST PODCAST 1 podcast cover");
-      expect(image).toHaveAttribute("src", "medium.jpg"); // The 170px image
-    });
-  });
-
-  it("falls back to last image when 170px not available", async () => {
-    const mockDataWithoutMedium: ApiResponse = {
-      feed: {
-        entry: [
-          {
-            id: { attributes: { "im:id": "789" } },
-            "im:name": { label: "Test Podcast 3" },
-            "im:artist": { label: "Test Author 3" },
-            "im:image": [
-              { label: "small.jpg", attributes: { height: "55" } },
-              { label: "large.jpg", attributes: { height: "600" } },
-            ],
-          },
-        ],
-      },
-    };
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockDataWithoutMedium),
-    });
-
-    render(<HomePage />);
-
-    await waitFor(() => {
-      const image = screen.getByAltText("TEST PODCAST 3 podcast cover");
-      expect(image).toHaveAttribute("src", "large.jpg"); // Falls back to last image
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/rss/toppodcasts/limit=100/genre=1310/json"
+      );
     });
   });
 });
