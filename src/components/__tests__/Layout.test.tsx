@@ -1,4 +1,3 @@
-// src/components/__tests__/Layout.test.tsx
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { Layout } from "../Layout";

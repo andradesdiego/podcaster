@@ -1,4 +1,3 @@
-// src/test/test-utils.tsx (opcional - para setup compartido)
 import { render, RenderOptions } from "@testing-library/react";
 import { ReactElement } from "react";
 import { vi } from "vitest";
