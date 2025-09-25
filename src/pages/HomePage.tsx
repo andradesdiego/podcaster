@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { PodcastCard } from "../components/PodcastCard";
+import { SearchInput } from "../components/SearchInput";
+import { usePodcastFilter } from "../hooks/usePodcastFilter";
 import { ApiResponse, PodcastEntry } from "../types/podcast";
 import "./HomePage.css";
 
@@ -30,7 +32,7 @@ export function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, []); // Empty dependency array is correct - we only want to fetch once
+  }, []);
 
   // helper pequeño para escoger la imagen 170px (o la última disponible)
   const getImage = (pod: PodcastEntry): string => {
@@ -40,6 +42,10 @@ export function HomePage() {
   };
 
   const entries = data?.feed?.entry ?? [];
+
+  // Hook de filtrado
+  const { filteredPodcasts, searchTerm, setSearchTerm, resultsCount } =
+    usePodcastFilter(entries);
 
   if (loading) {
     return (
@@ -60,11 +66,17 @@ export function HomePage() {
   return (
     <div className="homepage">
       <div className="homepage-header">
-        <div className="homepage-results-count">{entries.length}</div>
+        <div className="homepage-results-count">{resultsCount}</div>
+        <SearchInput
+          value={searchTerm}
+          onChange={setSearchTerm}
+          placeholder="Filter podcasts..."
+          disabled={loading}
+        />
       </div>
 
       <div className="homepage-grid">
-        {entries.map((pod: PodcastEntry) => {
+        {filteredPodcasts.map((pod: PodcastEntry) => {
           const id = pod?.id?.attributes?.["im:id"] ?? crypto.randomUUID();
           const title = pod?.["im:name"]?.label ?? "(sin título)";
           const author = pod?.["im:artist"]?.label ?? "(sin autor)";
@@ -84,6 +96,18 @@ export function HomePage() {
           );
         })}
       </div>
+
+      {!loading && resultsCount === 0 && searchTerm && (
+        <div className="homepage-no-results">
+          <p>No se encontraron podcasts para "{searchTerm}"</p>
+          <button
+            onClick={() => setSearchTerm("")}
+            className="homepage-clear-search"
+          >
+            Ver todos los podcasts
+          </button>
+        </div>
+      )}
     </div>
   );
 }

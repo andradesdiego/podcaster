@@ -4,7 +4,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-bg);
+  background-color: var(--color-bg-alt);
 }
 
 .layout-header {
@@ -54,7 +54,7 @@
 .layout-main {
   flex: 1;
   padding: var(--spacing-lg);
-  max-width: 1920px;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
   /* Asegurar que el contenido no se salga por arriba */
@@ -64,5 +64,12 @@
 @media (min-width: 768px) {
   .layout-main {
     padding: calc(var(--spacing-lg) * 1.5);
+  }
+}
+
+/* Padding más pequeño en móvil para mejor centrado */
+@media (max-width: 767px) {
+  .layout-main {
+    padding: var(--spacing-md);
   }
 }
