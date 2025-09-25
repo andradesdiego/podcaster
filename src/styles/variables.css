@@ -1,0 +1,21 @@
+:root {
+  /* colores */
+  --color-bg: #ffffff;
+  --color-bg-alt: #f9f9f9;
+  --color-text: #111111;
+  --color-text-muted: #666666;
+  --color-border: #dddddd;
+  --color-accent: #0070f3;
+
+  /* tipografía */
+  --font-base: system-ui, sans-serif;
+  --font-size-base: 16px;
+  --font-size-sm: 0.875rem;
+  --font-size-lg: 1.125rem;
+
+  /* layout */
+  --radius-card: 0.2rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 2rem;
+}
