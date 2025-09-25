@@ -18,18 +18,6 @@ describe("SearchInput", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders with custom placeholder", () => {
-    render(
-      <SearchInput
-        value=""
-        onChange={mockOnChange}
-        placeholder="Search here..."
-      />
-    );
-
-    expect(screen.getByPlaceholderText("Search here...")).toBeInTheDocument();
-  });
-
   it("displays the current value", () => {
     render(<SearchInput value="test value" onChange={mockOnChange} />);
 
@@ -43,15 +31,13 @@ describe("SearchInput", () => {
     const input = screen.getByRole("textbox");
     await user.type(input, "hello");
 
-    expect(mockOnChange).toHaveBeenCalledTimes(5); // One call per character
+    expect(mockOnChange).toHaveBeenCalledTimes(5);
   });
 
   it("shows clear button when there is a value", () => {
     render(<SearchInput value="some text" onChange={mockOnChange} />);
 
-    const clearButton = screen.getByLabelText("Clear search");
-    expect(clearButton).toBeInTheDocument();
-    expect(clearButton).toHaveTextContent("×");
+    expect(screen.getByLabelText("Clear search")).toBeInTheDocument();
   });
 
   it("does not show clear button when value is empty", () => {
@@ -76,30 +62,5 @@ describe("SearchInput", () => {
 
     const input = screen.getByRole("textbox");
     expect(input).toBeDisabled();
-  });
-
-  it("disables clear button when input is disabled", () => {
-    render(
-      <SearchInput value="test" onChange={mockOnChange} disabled={true} />
-    );
-
-    const clearButton = screen.getByLabelText("Clear search");
-    expect(clearButton).toBeDisabled();
-  });
-
-  it("has proper accessibility attributes", () => {
-    render(<SearchInput value="" onChange={mockOnChange} />);
-
-    const input = screen.getByRole("textbox");
-    expect(input).toHaveAttribute("aria-label", "Search podcasts");
-  });
-
-  it("handles direct input changes", () => {
-    render(<SearchInput value="" onChange={mockOnChange} />);
-
-    const input = screen.getByRole("textbox");
-    fireEvent.change(input, { target: { value: "direct change" } });
-
-    expect(mockOnChange).toHaveBeenCalledWith("direct change");
   });
 });

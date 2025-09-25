@@ -1,4 +1,3 @@
-// src/types/podcast.ts
 export interface PodcastImage {
   label: string;
   attributes: {
@@ -19,12 +18,6 @@ export interface PodcastEntry {
     label: string;
   };
   "im:image": PodcastImage[];
-}
-
-export interface PodcastFeed {
-  feed: {
-    entry: PodcastEntry[];
-  };
 }
 
 export interface ApiResponse {
