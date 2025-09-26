@@ -1,14 +1,17 @@
+// src/pages/HomePage.tsx
 import { useNavigate } from "react-router-dom";
 import { PodcastCard } from "../components/PodcastCard";
 import { SearchInput } from "../components/SearchInput";
 import { usePodcastFilter } from "../hooks/usePodcastFilter";
-import { usePodcast } from "../context/PodcastContext";
+// import { usePodcast } from "../context/PodcastContext";  // ← Comentamos
+import { usePodcastDDD } from "../hooks/usePodcastDDD"; // ← Añadimos
 import { PodcastEntry } from "../types/podcast";
 import "./HomePage.css";
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { podcasts, loading, error } = usePodcast();
+  // const { podcasts, loading, error } = usePodcast();        // ← Comentamos
+  const { podcasts, loading, error } = usePodcastDDD(); // ← Cambiamos
 
   const getImage = (pod: PodcastEntry): string => {
     const imgs = pod?.["im:image"] ?? [];

@@ -11,7 +11,7 @@ import {
 
 export class ItunesPodcastRepository implements PodcastRepository {
   private readonly TOP_PODCASTS_URL =
-    "/api/us/rss/toppodcasts/limit=100/genre=1310/json";
+    "/rss/toppodcasts/limit=100/genre=1310/json";
 
   constructor(private readonly httpClient: HttpClient) {}
 
