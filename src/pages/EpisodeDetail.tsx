@@ -28,7 +28,7 @@ export function EpisodeDetail() {
   if (loading) {
     return (
       <div className="episode-detail-loading">
-        <p>Cargando podcast...</p>
+        <p>Loading podcast...</p>
       </div>
     );
   }
@@ -36,7 +36,7 @@ export function EpisodeDetail() {
   if (error) {
     return (
       <div className="episode-detail-error">
-        <p>Error cargando podcast: {error}</p>
+        <p>Error loading podcast: {error}</p>
       </div>
     );
   }
@@ -48,7 +48,7 @@ export function EpisodeDetail() {
   if (!podcast) {
     return (
       <div className="episode-detail-not-found">
-        <p>Podcast no encontrado</p>
+        <p>Podcast not found</p>
       </div>
     );
   }
@@ -64,7 +64,7 @@ export function EpisodeDetail() {
   if (isLoadingEpisodes) {
     return (
       <div className="episode-detail-loading">
-        <p>Cargando episodio...</p>
+        <p>Loading episode...</p>
       </div>
     );
   }
@@ -72,7 +72,7 @@ export function EpisodeDetail() {
   if (episodeError) {
     return (
       <div className="episode-detail-error">
-        <p>Error cargando episodios: {episodeError}</p>
+        <p>Error loading episode: {episodeError}</p>
       </div>
     );
   }
@@ -80,7 +80,7 @@ export function EpisodeDetail() {
   if (!episode) {
     return (
       <div className="episode-detail-not-found">
-        <p>Episodio no encontrado</p>
+        <p>Not found episode</p>
       </div>
     );
   }
@@ -128,7 +128,7 @@ export function EpisodeDetail() {
             <p className="episode-detail__author">by {author}</p>
           </Link>
           <div className="episode-detail__description">
-            <p>Descripción: {title}</p>
+            <p>Description: {title}</p>
           </div>
         </div>
       </div>
@@ -149,12 +149,12 @@ export function EpisodeDetail() {
               <audio controls preload="none" className="episode-detail__audio">
                 <source src={episode.episodeUrl} type="audio/mpeg" />
                 <source src={episode.episodeUrl} type="audio/mp4" />
-                Tu navegador no soporta el elemento de audio.
+                Your browser does not support audio.
               </audio>
             </div>
           ) : (
             <div className="episode-detail__no-audio">
-              <p>Audio no disponible para este episodio</p>
+              <p>Audio not available for this episode</p>
             </div>
           )}
         </div>

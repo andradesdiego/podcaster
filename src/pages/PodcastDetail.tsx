@@ -98,23 +98,22 @@ export function PodcastDetail() {
     <div className="podcast-detail">
       <div className="podcast-detail__sidebar">
         <div className="podcast-detail__image-container">
-          <Link to="/">
-            <img
-              src={image}
-              alt={`${title} podcast cover`}
-              className="podcast-detail__image"
-            />
-          </Link>
+          <img
+            src={image}
+            alt={`${title} podcast cover`}
+            className="podcast-detail__image"
+          />
         </div>
         <div className="podcast-detail__info">
-          <Link to="/" className="podcast-detail__title-link">
+          <div className="podcast-detail__title-link">
             <h1 className="podcast-detail__title">{title}</h1>
-          </Link>
-          <Link to="/" className="podcast-detail__author-link">
+          </div>
+          <div className="podcast-detail__author-link">
             <p className="podcast-detail__author">by {author}</p>
-          </Link>
+          </div>
           <div className="podcast-detail__description">
-            <p>Description: {title}</p>
+            <h3 className="podcast-detail__description-title">Description:</h3>
+            <p> {title}</p>
           </div>
         </div>
       </div>

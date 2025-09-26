@@ -2,7 +2,7 @@
 
 .layout {
   min-height: 100vh;
-  background: var(--background-primary, #f8f9fa);
+  background: var(--background-white, #fff);
 }
 
 .layout__header {
@@ -37,7 +37,7 @@
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
-  color: var(--text-primary, #333);
+  color: var(--color-primary, #333);
 }
 
 .layout__navigation-indicator {
