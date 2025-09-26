@@ -1,27 +1,22 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { PodcastService } from "../services/PodcastService";
-
-const mockGetTopPodcasts = {
-  execute: vi.fn(),
-} as any;
-
-const mockGetPodcastDetails = {
-  execute: vi.fn(),
-} as any;
-
-const mockGetEpisodeDetails = {
-  execute: vi.fn(),
-} as any;
+import type { GetTopPodcasts } from "../use-cases/GetTopPodcasts";
+import type { GetPodcastDetails } from "../use-cases/GetPodcastDetails";
+import type { GetEpisodeDetails } from "../use-cases/GetEpisodeDetails";
 
 describe("PodcastService", () => {
   let service: PodcastService;
 
+  const mockGetTopPodcasts = { execute: vi.fn() };
+  const mockGetPodcastDetails = { execute: vi.fn() };
+  const mockGetEpisodeDetails = { execute: vi.fn() };
+
   beforeEach(() => {
     vi.clearAllMocks();
     service = new PodcastService(
-      mockGetTopPodcasts,
-      mockGetPodcastDetails,
-      mockGetEpisodeDetails
+      mockGetTopPodcasts as unknown as GetTopPodcasts,
+      mockGetPodcastDetails as unknown as GetPodcastDetails,
+      mockGetEpisodeDetails as unknown as GetEpisodeDetails
     );
   });
 
