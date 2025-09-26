@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { PodcastCard } from "../components/PodcastCard";
 import { SearchInput } from "../components/SearchInput";
 import { usePodcastFilter } from "../hooks/usePodcastFilter";
@@ -6,6 +7,7 @@ import { PodcastEntry } from "../types/podcast";
 import "./HomePage.css";
 
 export function HomePage() {
+  const navigate = useNavigate();
   const { podcasts, loading, error } = usePodcast();
 
   const getImage = (pod: PodcastEntry): string => {
@@ -16,6 +18,10 @@ export function HomePage() {
 
   const { filteredPodcasts, searchTerm, setSearchTerm, resultsCount } =
     usePodcastFilter(podcasts);
+
+  const handlePodcastClick = (podcastId: string) => {
+    navigate(`/podcast/${podcastId}`);
+  };
 
   if (loading) {
     return (
@@ -58,9 +64,7 @@ export function HomePage() {
               imageUrl={img}
               title={title.toUpperCase()}
               author={author}
-              onClick={() => {
-                console.log(`Navigate to podcast ${id}`);
-              }}
+              onClick={() => handlePodcastClick(id)}
             />
           );
         })}
