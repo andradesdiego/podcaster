@@ -1,7 +1,9 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { usePodcast } from "../context/PodcastContext";
 import { PodcastEntry, Episode } from "../types/podcast";
+import { PodcastSidebar } from "../components/PodcastSidebar";
+
 import "./EpisodeDetail.css";
 
 export function EpisodeDetail() {
@@ -85,17 +87,6 @@ export function EpisodeDetail() {
     );
   }
 
-  const getImage = (pod: PodcastEntry): string => {
-    const imgs = pod?.["im:image"] ?? [];
-    const by600 = imgs.find((x) => x?.attributes?.height === "600");
-    const by170 = imgs.find((x) => x?.attributes?.height === "170");
-    return by600?.label || by170?.label || imgs.at(-1)?.label || "";
-  };
-
-  const title = podcast?.["im:name"]?.label || "";
-  const author = podcast?.["im:artist"]?.label || "";
-  const image = getImage(podcast);
-
   const createMarkup = (htmlString: string) => {
     return { __html: htmlString };
   };
@@ -104,7 +95,7 @@ export function EpisodeDetail() {
 
   return (
     <div className="episode-detail">
-      <div className="episode-detail__sidebar">
+      {/* <div className="episode-detail__sidebar">
         <div className="episode-detail__image-container">
           <Link to={`/podcast/${podcastId}`}>
             <img
@@ -131,8 +122,8 @@ export function EpisodeDetail() {
             <p>Description: {title}</p>
           </div>
         </div>
-      </div>
-
+      </div> */}
+      <PodcastSidebar podcast={podcast} linkTo={`/podcast/${podcastId}`} />
       <div className="episode-detail__main">
         <div className="episode-detail__content">
           <h2 className="episode-detail__episode-title">{episode.trackName}</h2>

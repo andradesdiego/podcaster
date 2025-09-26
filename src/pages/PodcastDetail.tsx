@@ -2,6 +2,8 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { usePodcast } from "../context/PodcastContext";
 import { PodcastEntry, Episode } from "../types/podcast";
+import { PodcastSidebar } from "../components/PodcastSidebar";
+
 import "./PodcastDetail.css";
 
 export function PodcastDetail() {
@@ -50,13 +52,6 @@ export function PodcastDetail() {
     );
   }
 
-  const getImage = (pod: PodcastEntry): string => {
-    const imgs = pod?.["im:image"] ?? [];
-    const by600 = imgs.find((x) => x?.attributes?.height === "600");
-    const by170 = imgs.find((x) => x?.attributes?.height === "170");
-    return by600?.label || by170?.label || imgs.at(-1)?.label || "";
-  };
-
   const formatDuration = (timeMillis?: number): string => {
     if (!timeMillis) return "-";
 
@@ -85,18 +80,13 @@ export function PodcastDetail() {
       return dateString;
     }
   };
-
-  const title = podcast?.["im:name"]?.label || "";
-  const author = podcast?.["im:artist"]?.label || "";
-  const image = getImage(podcast);
-
   const podcastEpisodes = episodes[id || ""] || [];
   const isLoadingEpisodes = episodesLoading[id || ""] || false;
   const episodeError = episodesError[id || ""];
 
   return (
     <div className="podcast-detail">
-      <div className="podcast-detail__sidebar">
+      {/* <div className="podcast-detail__sidebar">
         <div className="podcast-detail__image-container">
           <img
             src={image}
@@ -116,8 +106,8 @@ export function PodcastDetail() {
             <p> {title}</p>
           </div>
         </div>
-      </div>
-
+      </div> */}
+      <PodcastSidebar podcast={podcast} />
       <div className="podcast-detail__main">
         <div className="podcast-detail__episodes-header">
           <h2>Episodes ({podcastEpisodes.length})</h2>

@@ -19,7 +19,10 @@ export function Layout({ children }: LayoutProps) {
 
           {isNavigating && (
             <div className="layout__navigation-indicator">
-              <div className="layout__spinner"></div>
+              <div
+                className="layout__spinner"
+                data-testid="navigation-spinner"
+              ></div>
             </div>
           )}
         </div>
