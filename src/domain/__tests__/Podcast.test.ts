@@ -30,6 +30,7 @@ describe("Podcast", () => {
     });
 
     it("assigns 0 episodes by default if not provided", () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { episodeCount, ...dataWithoutEpisodes } = validPodcastData;
       const podcast = Podcast.create(dataWithoutEpisodes);
       expect(podcast.getEpisodeCount()).toBe(0);

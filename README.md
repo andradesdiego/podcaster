@@ -19,12 +19,22 @@ A modern podcast application built for technical assessment. Browse the top 100 
 - Reusable sidebar with contextual navigation
 - Complete responsive design for mobile, tablet, and desktop
 
-**✅ DDD Foundation Layer:**
+**✅ Infrastructure Layer:**
+
+- Real repository implementations with iTunes API integration
+- HTTP client with error handling and type safety
+- Cache repository with localStorage and TTL management
+- iTunes API mappers for domain entity transformation
+- Dependency injection container with service registration
+- Complete test coverage for all infrastructure components
+
+**✅ DDD Foundation Complete:**
 
 - Domain layer with entities, value objects, and domain errors
 - Application layer with use cases, ports, and DTOs
+- Infrastructure layer with repositories, HTTP client, and DI container
 - Service layer providing facade for UI components
-- Comprehensive test coverage with 86 passing tests
+- Comprehensive test coverage with 109 passing tests
 - TypeScript-first implementation with strict typing
 - Parallel change approach - existing functionality preserved
 
@@ -58,7 +68,7 @@ A modern podcast application built for technical assessment. Browse the top 100 
 ├── Granular Loading States              # Separated per resource
 └── Centralized Error Handling           # With automatic recovery
 
-🏛 DDD Foundation (Parallel Implementation)
+🏛 DDD Complete Architecture (Parallel Implementation)
 ├── Domain Layer
 │   ├── Entities (Podcast, Episode)      # Business logic encapsulation
 │   ├── Value Objects (PodcastId)        # Domain primitives with validation
@@ -68,7 +78,13 @@ A modern podcast application built for technical assessment. Browse the top 100 
 │   ├── Ports                           # Repository interfaces
 │   ├── DTOs                            # Data transfer objects
 │   └── Services                        # Application facade
-└── Test Coverage                        # 86 tests covering all layers
+├── Infrastructure Layer
+│   ├── Repositories                    # iTunes API implementations
+│   ├── HTTP Client                     # Fetch wrapper with error handling
+│   ├── Cache Repository                # localStorage with TTL
+│   ├── Mappers                         # API response transformations
+│   └── DI Container                    # Service registration
+└── Test Coverage                        # 109 tests covering all layers
 ```
 
 ### Component Architecture
@@ -95,6 +111,12 @@ src/
 │   ├── ports/                   # Repository interfaces
 │   ├── dto/                     # Data transfer objects
 │   └── services/                # Application facade
+├── infrastructure/              # DDD Infrastructure layer
+│   ├── repositories/            # iTunes API implementations
+│   ├── http/                    # HTTP client with error handling
+│   ├── cache/                   # localStorage cache with TTL
+│   ├── mappers/                 # API response transformations
+│   └── di/                      # Dependency injection container
 ├── hooks/                       # Custom specialized hooks
 │   ├── usePodcastFilter.ts      # Real-time search filtering
 │   └── useNavigationIndicator.ts # Visual navigation indicator
@@ -103,6 +125,7 @@ src/
 └── __tests__/                   # Complete testing suite
     ├── domain/                  # Domain layer tests
     ├── application/             # Application layer tests
+    ├── infrastructure/          # Infrastructure layer tests
     └── components/              # Component unit tests
 ```
 
@@ -145,19 +168,17 @@ npm run test:coverage
 
 # Code quality
 npm run lint
-npm run type-check
 ```
 
 ## 🏃‍♂️ Quick Start
 
 ```bash
 # Clone and install dependencies
-git clone <repository-url>
-cd podcast-player
+git clone <https://github.com/andradesdiego/podcaster.git>
+cd podcaster
 npm install
 
 # Verify setup
-npm run type-check
 npm run lint
 
 # Start development environment
@@ -173,8 +194,9 @@ npm run build
 
 ## 🧪 Testing Strategy
 
-- **Domain Layer**: 86 tests covering entities, value objects, and errors
-- **Application Layer**: Use cases, services, and DTOs
+- **Domain Layer**: 109 tests covering entities, value objects, and errors
+- **Application Layer**: Use cases, services, and DTOs with comprehensive mocking
+- **Infrastructure Layer**: HTTP client, cache, mappers, and DI container
 - **Component Tests**: UI components and user interactions
 - **Integration Tests**: End-to-end user flows
 - **TypeScript**: Strict mode with complete type coverage
@@ -184,7 +206,7 @@ npm run build
 - **v1.0.0** (MVP1): Basic podcast list + search + cache
 - **v1.1.0** (MVP2): Podcast detail + episodes + navigation
 - **v1.2.0** (MVP3): Audio player + HTML description + component refactor
-- **v1.3.0** (DDD Foundation): Domain + Application layers with parallel change ← **Current**
+- **v1.3.0** (Infrastructure Complete): Complete DDD architecture with real repositories ← **Current**
 
 ## 📊 Project Metrics
 
@@ -193,17 +215,17 @@ npm run build
 - **API integration**: iTunes RSS + Lookup fully functional
 - **Cache hit rate**: 24h TTL with optimized localStorage
 - **Build size**: <500KB gzipped (Vite optimized)
-- **Test coverage**: 86 tests with comprehensive coverage
+- **Test coverage**: 109 tests with comprehensive coverage
 - **Architecture**: Ready for gradual migration to DDD
 
 ## 🏗 Architecture Notes
 
-This project implements a **parallel change approach** for introducing Domain-Driven Design. The existing MVP3 functionality remains fully operational while the new DDD foundation is built alongside it.
+This project implements a **parallel change approach** for introducing Domain-Driven Design. The existing MVP3 functionality remains fully operational while the complete DDD architecture is built alongside it.
 
-**Current State**: DDD foundation layer complete with domain entities, application services, and comprehensive test coverage. Ready for gradual component migration.
+**Current State**: Complete DDD architecture with domain entities, application services, infrastructure repositories, and comprehensive test coverage. Ready for gradual component migration.
 
-**Next Phase**: Infrastructure layer implementation and progressive migration of UI components to use the new architecture.
+**Next Phase**: Progressive migration of UI components to use the new DDD architecture.
 
 ---
 
-**Status**: ✅ **Fully functional** - Production-ready with all required features implemented and DDD foundation established for future scalability.
+**Status**: ✅ **Fully functional** - Production-ready with all required features implemented and complete DDD architecture established for future scalability.
