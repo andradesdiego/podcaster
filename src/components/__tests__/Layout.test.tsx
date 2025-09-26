@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { Layout } from "../Layout";
 
-// Mock the useNavigationIndicator hook
 const mockUseNavigationIndicator = vi.fn();
 vi.mock("../hooks/useNavigationIndicator", () => ({
   useNavigationIndicator: mockUseNavigationIndicator,
@@ -19,7 +18,6 @@ const renderWithRouter = (children: React.ReactNode) => {
 
 describe("Layout", () => {
   beforeEach(() => {
-    // Default mock return value
     mockUseNavigationIndicator.mockReturnValue(false);
   });
 
@@ -27,7 +25,7 @@ describe("Layout", () => {
     renderWithRouter(<div>Test content</div>);
 
     expect(screen.getByText("Podcaster")).toBeInTheDocument();
-    expect(screen.getByRole("banner")).toBeInTheDocument(); // header
+    expect(screen.getByRole("banner")).toBeInTheDocument();
     expect(screen.getByRole("main")).toBeInTheDocument();
   });
 
@@ -40,7 +38,6 @@ describe("Layout", () => {
   });
 
   it("shows navigation indicator when navigating", () => {
-    // Mock hook to return true (navigating)
     mockUseNavigationIndicator.mockReturnValue(true);
 
     renderWithRouter(<div>Content</div>);
