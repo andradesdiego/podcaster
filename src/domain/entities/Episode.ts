@@ -32,12 +32,10 @@ export class Episode {
     );
   }
 
-  // Lógica de negocio: verificar si tiene audio
   hasAudio(): boolean {
     return this.audioUrl !== null && this.audioUrl.length > 0;
   }
 
-  // Lógica de negocio: formatear duración
   getFormattedDuration(): string {
     if (!this.duration) return "--:--";
 
@@ -52,7 +50,6 @@ export class Episode {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   }
 
-  // Lógica de negocio: formatear fecha
   getFormattedDate(): string {
     return this.publishedAt.toLocaleDateString("es-ES", {
       year: "numeric",
@@ -61,7 +58,6 @@ export class Episode {
     });
   }
 
-  // Getters
   getId(): string {
     return this.id;
   }
