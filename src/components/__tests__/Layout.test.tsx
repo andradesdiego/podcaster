@@ -1,14 +1,30 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import { Layout } from "../Layout";
 
+// Mock the useNavigationIndicator hook
+const mockUseNavigationIndicator = vi.fn();
+vi.mock("../hooks/useNavigationIndicator", () => ({
+  useNavigationIndicator: mockUseNavigationIndicator,
+}));
+
+const renderWithRouter = (children: React.ReactNode) => {
+  return render(
+    <MemoryRouter>
+      <Layout>{children}</Layout>
+    </MemoryRouter>
+  );
+};
+
 describe("Layout", () => {
+  beforeEach(() => {
+    // Default mock return value
+    mockUseNavigationIndicator.mockReturnValue(false);
+  });
+
   it("renders the title correctly", () => {
-    render(
-      <Layout>
-        <div>Test content</div>
-      </Layout>
-    );
+    renderWithRouter(<div>Test content</div>);
 
     expect(screen.getByText("Podcaster")).toBeInTheDocument();
     expect(screen.getByRole("banner")).toBeInTheDocument(); // header
@@ -18,61 +34,49 @@ describe("Layout", () => {
   it("renders children correctly", () => {
     const testContent = "This is test content";
 
-    render(
-      <Layout>
-        <div>{testContent}</div>
-      </Layout>
-    );
+    renderWithRouter(<div>{testContent}</div>);
 
     expect(screen.getByText(testContent)).toBeInTheDocument();
   });
 
-  it("shows loading indicator when isLoading is true", () => {
-    render(
-      <Layout isLoading={true}>
-        <div>Content</div>
-      </Layout>
-    );
+  it("shows navigation indicator when navigating", () => {
+    // Mock hook to return true (navigating)
+    mockUseNavigationIndicator.mockReturnValue(true);
 
-    const loadingIndicator = screen.getByLabelText("Cargando...");
-    expect(loadingIndicator).toBeInTheDocument();
-    expect(loadingIndicator).toHaveTextContent("●");
+    renderWithRouter(<div>Content</div>);
+
+    const spinner = screen.getByTestId("navigation-spinner");
+    expect(spinner).toBeInTheDocument();
+    expect(spinner).toHaveClass("layout__spinner");
   });
 
-  it("does not show loading indicator when isLoading is false", () => {
-    render(
-      <Layout isLoading={false}>
-        <div>Content</div>
-      </Layout>
-    );
+  it("title links to home page", () => {
+    renderWithRouter(<div>Content</div>);
 
-    expect(screen.queryByLabelText("Cargando...")).not.toBeInTheDocument();
-  });
-
-  it("does not show loading indicator by default", () => {
-    render(
-      <Layout>
-        <div>Content</div>
-      </Layout>
-    );
-
-    expect(screen.queryByLabelText("Cargando...")).not.toBeInTheDocument();
+    const titleLink = screen.getByRole("link", { name: "Podcaster" });
+    expect(titleLink).toHaveAttribute("href", "/");
   });
 
   it("has proper CSS classes", () => {
-    render(
-      <Layout>
-        <div>Content</div>
-      </Layout>
-    );
+    renderWithRouter(<div>Content</div>);
 
     const layout = screen.getByText("Podcaster").closest(".layout");
     expect(layout).toHaveClass("layout");
 
     const header = screen.getByRole("banner");
-    expect(header).toHaveClass("layout-header");
+    expect(header).toHaveClass("layout__header");
 
     const main = screen.getByRole("main");
-    expect(main).toHaveClass("layout-main");
+    expect(main).toHaveClass("layout__main");
+  });
+
+  it("header content has correct structure", () => {
+    renderWithRouter(<div>Content</div>);
+
+    const headerContent = screen
+      .getByText("Podcaster")
+      .closest(".layout__header-content");
+    expect(headerContent).toBeInTheDocument();
+    expect(headerContent).toHaveClass("layout__header-content");
   });
 });

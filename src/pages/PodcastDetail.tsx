@@ -2,6 +2,8 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { usePodcast } from "../context/PodcastContext";
 import { PodcastEntry, Episode } from "../types/podcast";
+import { PodcastSidebar } from "../components/PodcastSidebar";
+
 import "./PodcastDetail.css";
 
 export function PodcastDetail() {
@@ -50,13 +52,6 @@ export function PodcastDetail() {
     );
   }
 
-  const getImage = (pod: PodcastEntry): string => {
-    const imgs = pod?.["im:image"] ?? [];
-    const by600 = imgs.find((x) => x?.attributes?.height === "600");
-    const by170 = imgs.find((x) => x?.attributes?.height === "170");
-    return by600?.label || by170?.label || imgs.at(-1)?.label || "";
-  };
-
   const formatDuration = (timeMillis?: number): string => {
     if (!timeMillis) return "-";
 
@@ -85,40 +80,34 @@ export function PodcastDetail() {
       return dateString;
     }
   };
-
-  const title = podcast?.["im:name"]?.label || "";
-  const author = podcast?.["im:artist"]?.label || "";
-  const image = getImage(podcast);
-
   const podcastEpisodes = episodes[id || ""] || [];
   const isLoadingEpisodes = episodesLoading[id || ""] || false;
   const episodeError = episodesError[id || ""];
 
   return (
     <div className="podcast-detail">
-      <div className="podcast-detail__sidebar">
+      {/* <div className="podcast-detail__sidebar">
         <div className="podcast-detail__image-container">
-          <Link to="/">
-            <img
-              src={image}
-              alt={`${title} podcast cover`}
-              className="podcast-detail__image"
-            />
-          </Link>
+          <img
+            src={image}
+            alt={`${title} podcast cover`}
+            className="podcast-detail__image"
+          />
         </div>
         <div className="podcast-detail__info">
-          <Link to="/" className="podcast-detail__title-link">
+          <div className="podcast-detail__title-link">
             <h1 className="podcast-detail__title">{title}</h1>
-          </Link>
-          <Link to="/" className="podcast-detail__author-link">
+          </div>
+          <div className="podcast-detail__author-link">
             <p className="podcast-detail__author">by {author}</p>
-          </Link>
+          </div>
           <div className="podcast-detail__description">
-            <p>Description: {title}</p>
+            <h3 className="podcast-detail__description-title">Description:</h3>
+            <p> {title}</p>
           </div>
         </div>
-      </div>
-
+      </div> */}
+      <PodcastSidebar podcast={podcast} />
       <div className="podcast-detail__main">
         <div className="podcast-detail__episodes-header">
           <h2>Episodes ({podcastEpisodes.length})</h2>

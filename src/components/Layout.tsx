@@ -1,24 +1,34 @@
-import { ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { useNavigationIndicator } from "../hooks/useNavigationIndicator";
 import "./Layout.css";
 
 interface LayoutProps {
-  children: ReactNode;
-  isLoading?: boolean;
+  children: React.ReactNode;
 }
 
-export function Layout({ children, isLoading = false }: LayoutProps) {
+export function Layout({ children }: LayoutProps) {
+  const isNavigating = useNavigationIndicator();
+
   return (
     <div className="layout">
-      <header className="layout-header">
-        <h1 className="layout-title">Podcaster</h1>
-        {isLoading && (
-          <div className="layout-loading-indicator" aria-label="Cargando...">
-            ●
-          </div>
-        )}
+      <header className="layout__header">
+        <div className="layout__header-content">
+          <Link to="/" className="layout__title-link">
+            <h1 className="layout__title">Podcaster</h1>
+          </Link>
+
+          {isNavigating && (
+            <div className="layout__navigation-indicator">
+              <div
+                className="layout__spinner"
+                data-testid="navigation-spinner"
+              ></div>
+            </div>
+          )}
+        </div>
       </header>
 
-      <main className="layout-main">{children}</main>
+      <main className="layout__main">{children}</main>
     </div>
   );
 }
