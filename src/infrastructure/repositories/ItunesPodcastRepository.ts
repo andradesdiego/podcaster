@@ -38,19 +38,14 @@ export class ItunesPodcastRepository implements PodcastRepository {
   }
 
   private async fetchPodcastWithEpisodes(podcastId: PodcastId) {
-    const baseUrl = import.meta.env.VITE_API_BASE_URL;
-    const lookupPath = import.meta.env.VITE_ITUNES_LOOKUP_URL || "/lookup";
-
-    const url = baseUrl
-      ? `https://api.allorigins.win/get?url=${encodeURIComponent(`${baseUrl}${lookupPath}?id=${podcastId.getValue()}&media=podcast&entity=podcastEpisode&limit=20`)}`
-      : `${lookupPath}?id=${podcastId.getValue()}&media=podcast&entity=podcastEpisode&limit=20`;
-
-    console.log("Final lookup URL:", url);
+    const url = `${config.lookupUrl}?id=${podcastId.getValue()}&media=podcast&entity=podcastEpisode&limit=${config.episodeLimit}`;
 
     const response = await this.httpClient.get<any>(url);
 
-    // Si es allorigins, parsear contents
-    const itunesResponse = baseUrl ? JSON.parse(response.contents) : response;
+    // Parse response based on whether CORS proxy was used
+    const itunesResponse = config.useCorsProxy
+      ? JSON.parse(response.contents)
+      : response;
 
     return ItunesMappers.mapLookupResponse(
       itunesResponse,
