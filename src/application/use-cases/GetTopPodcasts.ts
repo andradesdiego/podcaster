@@ -2,10 +2,11 @@ import { Podcast } from "../../domain/entities/Podcast";
 import { PodcastRepository } from "../ports/PodcastRepository";
 import { CacheRepository } from "../ports/CacheRepository";
 import { PodcastListDTO } from "../dto/PodcastDTO";
+import { config } from "../../config/env";
 
 export class GetTopPodcasts {
   private static readonly CACHE_KEY = "top_podcasts";
-  private static readonly CACHE_TTL_HOURS = 24;
+  private static readonly CACHE_TTL_HOURS = config.cacheTTLHours;
 
   constructor(
     private readonly podcastRepository: PodcastRepository,

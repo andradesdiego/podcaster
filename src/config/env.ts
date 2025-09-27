@@ -1,4 +1,3 @@
-// src/config/env.ts
 const getEnvVar = (key: string, defaultValue: string = ""): string => {
   return import.meta.env[key] ?? defaultValue;
 };
@@ -8,14 +7,16 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
   return value ? Number(value) : defaultValue;
 };
 
-// Configuración centralizada
 export const config = {
   // API URLs
   itunesRssUrl: getEnvVar(
     "VITE_ITUNES_RSS_URL",
-    import.meta.env.DEV ? "/rss" : "/us/rss"
+    import.meta.env.DEV ? "/rss" : "https://itunes.apple.com/us/rss"
   ),
-  itunesLookupUrl: getEnvVar("VITE_ITUNES_LOOKUP_URL", "/lookup"),
+  itunesLookupUrl: getEnvVar(
+    "VITE_ITUNES_LOOKUP_URL",
+    import.meta.env.DEV ? "/lookup" : "https://itunes.apple.com/lookup"
+  ),
 
   // API Limits
   podcastLimit: getEnvNumber("VITE_PODCAST_LIMIT", 100),
