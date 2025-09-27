@@ -2,8 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { usePodcast } from "../context/PodcastContext";
 import { PodcastSidebar } from "../components/PodcastSidebar";
-import { PodcastListDTO } from "../application/dto/PodcastDTO";
-import { Episode } from "../types/podcast";
+import { PodcastListDTO, EpisodeDTO } from "../application/dto/PodcastDTO";
 
 import "./PodcastDetail.css";
 
@@ -13,10 +12,10 @@ export function PodcastDetail() {
     podcasts,
     loading,
     error,
-    episodes,
     episodesLoading,
     episodesError,
     fetchEpisodes,
+    getEpisodes,
   } = usePodcast();
 
   useEffect(() => {
@@ -50,11 +49,10 @@ export function PodcastDetail() {
       </div>
     );
   }
+  const formatDuration = (duration?: number): string => {
+    if (!duration) return "-";
 
-  const formatDuration = (timeMillis?: number): string => {
-    if (!timeMillis) return "-";
-
-    const totalSeconds = Math.floor(timeMillis / 1000);
+    const totalSeconds = Math.floor(duration / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
@@ -79,7 +77,9 @@ export function PodcastDetail() {
       return dateString;
     }
   };
-  const podcastEpisodes = episodes[id || ""] || [];
+
+  // Use new DDD Context API
+  const podcastEpisodes = getEpisodes(id || "");
   const isLoadingEpisodes = episodesLoading[id || ""] || false;
   const episodeError = episodesError[id || ""];
 
@@ -114,21 +114,21 @@ export function PodcastDetail() {
                 </tr>
               </thead>
               <tbody>
-                {podcastEpisodes.map((episode: Episode) => (
-                  <tr key={episode.trackId} className="episode-row">
+                {podcastEpisodes.map((episode: EpisodeDTO) => (
+                  <tr key={episode.id} className="episode-row">
                     <td className="episode-title">
                       <Link
-                        to={`/podcast/${id}/episode/${episode.trackId}`}
+                        to={`/podcast/${id}/episode/${episode.id}`}
                         className="episode-title-link"
                       >
-                        {episode.trackName}
+                        {episode.title}
                       </Link>
                     </td>
                     <td className="episode-date">
-                      {formatDate(episode.releaseDate)}
+                      {formatDate(episode.publishedAt)}
                     </td>
                     <td className="episode-duration">
-                      {formatDuration(episode.trackTimeMillis)}
+                      {formatDuration(episode.duration)}
                     </td>
                   </tr>
                 ))}
