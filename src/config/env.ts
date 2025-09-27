@@ -8,7 +8,6 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
 };
 
 export const config = {
-  // Construir URLs usando las 3 variables
   topPodcastsUrl: (() => {
     const base = getEnvVar("VITE_API_BASE_URL");
     const rssPath = getEnvVar(
@@ -20,7 +19,6 @@ export const config = {
       return `${base}${rssPath}/toppodcasts/limit=100/genre=1310/json`;
     }
 
-    // Fallback sin base URL (desarrollo con proxy)
     return `${rssPath}/toppodcasts/limit=100/genre=1310/json`;
   })(),
 
@@ -32,11 +30,9 @@ export const config = {
       return `${base}${lookupPath}`;
     }
 
-    // Fallback sin base URL (desarrollo con proxy)
     return lookupPath;
   })(),
 
-  // Límites
   podcastLimit: getEnvNumber("VITE_PODCAST_LIMIT", 100),
   episodeLimit: getEnvNumber("VITE_EPISODE_LIMIT", 20),
   cacheTTLHours: getEnvNumber("VITE_CACHE_TTL_HOURS", 24),
