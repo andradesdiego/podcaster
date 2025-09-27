@@ -61,12 +61,142 @@ src/
 └── pages/                     # Application pages (use DTOs)
 ```
 
-### Data Flow
+## Data Flow Architecture
+
+### Information Transformation Pipeline
 
 ```
-Component → Context API → DDD Service → Repository → Cache/API
-         ← PodcastListDTO ←          ←            ←
+iTunes API → Mapper → Domain Entity → Use Case → DTO → Context → UI
 ```
+
+#### 1. iTunes API Response (Raw Data)
+
+```typescript
+// External iTunes structure with "im:" prefixes
+{
+  "im:id": { attributes: { "im:id": "123" } },
+  "im:name": { label: "Podcast Title" },
+  "im:artist": { label: "Author Name" },
+  "im:image": [{ label: "image.jpg" }]
+}
+```
+
+#### 2. Infrastructure Mapper (iTunes → Domain)
+
+```typescript
+// ItunesMappers.mapTopPodcastsResponse()
+const podcastData: PodcastData = {
+  id: entry.id.attributes["im:id"], // Extract from iTunes structure
+  title: entry["im:name"].label, // Clean property names
+  author: entry["im:artist"].label, // Remove "im:" paraphernalia
+  image: this.extractImageUrl(images), // Smart image selection
+};
+
+return Podcast.create(podcastData); // Domain entity
+```
+
+#### 3. Domain Entity (Business Logic)
+
+```typescript
+// Podcast entity with Value Objects and business rules
+export class Podcast {
+  constructor(
+    private readonly id: PodcastId, // Value Object
+    private readonly title: string,
+    private readonly author: string
+  ) {}
+
+  getBestImageUrl(): string {
+    /* business logic */
+  }
+  getTitle(): string {
+    return this.title;
+  }
+}
+```
+
+#### 4. Use Case (Entity → DTO)
+
+```typescript
+// GetTopPodcasts.mapToDTO()
+private mapToDTO(podcasts: Podcast[]): PodcastListDTO[] {
+  return podcasts.map(podcast => ({
+    id: podcast.getId().getValue(),     // VO → primitive
+    title: podcast.getTitle(),          // Entity method
+    author: podcast.getAuthor(),        // Entity method
+    image: podcast.getBestImageUrl(),   // Business logic applied
+    description: podcast.getDescription()
+  }));
+}
+```
+
+#### 5. Application DTO (Clean Interface)
+
+```typescript
+// PodcastListDTO - UI contract
+interface PodcastListDTO {
+  id: string; // Clean primitives
+  title: string; // No "im:" prefixes
+  author: string; // No iTunes structure
+  image: string; // Best quality image selected
+  description: string; // Ready for display
+}
+```
+
+#### 6. Context API (State Management)
+
+```typescript
+// PodcastContext manages DTO state
+interface PodcastState {
+  podcasts: PodcastListDTO[]; // Clean DTOs only
+  loading: boolean;
+  error: string | null;
+}
+
+// Context calls DDD services internally
+const podcasts = await podcastService.getTopPodcasts(); // DTOs
+dispatch({ type: "FETCH_SUCCESS", payload: podcasts });
+```
+
+#### 7. UI Components (Presentation)
+
+```typescript
+// Components consume clean DTOs
+const { podcasts } = usePodcast();
+
+return podcasts.map(podcast => (
+  <div key={podcast.id}>
+    <h3>{podcast.title}</h3>        {/* No "im:name.label" */}
+    <p>{podcast.author}</p>         {/* No "im:artist.label" */}
+    <img src={podcast.image} />     {/* No complex image logic */}
+  </div>
+));
+```
+
+### Cache Strategy
+
+**Cache Location:** Use Cases cache DTOs, not Domain entities
+
+```typescript
+// Cache stores serializable DTOs
+this.cacheRepository.set(CACHE_KEY, podcastDTOs, TTL_HOURS);
+```
+
+**Benefits:**
+
+- **Performance:** Cached DTOs skip entity creation overhead
+- **Serialization:** DTOs are JSON-friendly, entities are not
+- **Consistency:** UI always receives same DTO structure
+
+### Data Integrity Guarantees
+
+1. **Domain Boundaries:** Entities never leave Application layer
+2. **Type Safety:** Each transformation is strongly typed
+3. **Error Isolation:** Failed mappings don't corrupt domain state
+4. **Cache Invalidation:** TTL-based cache prevents stale data
+5. **Business Logic:** Centralized in Domain entities
+
+This architecture ensures clean separation between external APIs, business logic, and presentation concerns while maintaining compliance with Context API requirements.
 
 ### Configuration
 
