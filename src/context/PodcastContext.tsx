@@ -1,5 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
-
 import {
   createContext,
   useContext,
@@ -8,43 +6,32 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import { Episode, PodcastLookupResponse } from "../types/podcast";
-
 import { Container } from "../infrastructure/di/Container";
-import { PodcastListDTO } from "../application/dto/PodcastDTO";
-
-const EPISODES_CACHE_KEY = "episodes-cache";
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-
-interface EpisodeCacheData {
-  data: PodcastLookupResponse;
-  timestamp: number;
-}
-
-interface EpisodesCache {
-  [podcastId: string]: EpisodeCacheData;
-}
+import {
+  PodcastListDTO,
+  PodcastDetailDTO,
+  EpisodeDTO,
+} from "../application/dto/PodcastDTO";
 
 interface PodcastState {
-  podcasts: PodcastListDTO[]; // Changed from PodcastEntry[]
+  podcasts: PodcastListDTO[];
   loading: boolean;
   error: string | null;
-  lastFetch: number | null;
-  // Episodes state (keep as is for now)
-  episodes: { [podcastId: string]: Episode[] };
+  // Episodes state using DTOs
+  episodeDetails: { [podcastId: string]: PodcastDetailDTO };
   episodesLoading: { [podcastId: string]: boolean };
   episodesError: { [podcastId: string]: string | null };
 }
 
 type PodcastAction =
   | { type: "FETCH_START" }
-  | { type: "FETCH_SUCCESS"; payload: PodcastListDTO[] } // Changed from PodcastEntry[]
+  | { type: "FETCH_SUCCESS"; payload: PodcastListDTO[] }
   | { type: "FETCH_ERROR"; payload: string }
   | { type: "CLEAR_ERROR" }
   | { type: "FETCH_EPISODES_START"; payload: { podcastId: string } }
   | {
       type: "FETCH_EPISODES_SUCCESS";
-      payload: { podcastId: string; episodes: Episode[] };
+      payload: { podcastId: string; detail: PodcastDetailDTO };
     }
   | {
       type: "FETCH_EPISODES_ERROR";
@@ -57,14 +44,14 @@ interface PodcastContextType extends PodcastState {
   clearError: () => void;
   fetchEpisodes: (podcastId: string) => Promise<void>;
   clearEpisodesError: (podcastId: string) => void;
+  getEpisodes: (podcastId: string) => EpisodeDTO[];
 }
 
 const initialState: PodcastState = {
-  podcasts: [], // Now PodcastListDTO[]
+  podcasts: [],
   loading: false,
   error: null,
-  lastFetch: null,
-  episodes: {},
+  episodeDetails: {},
   episodesLoading: {},
   episodesError: {},
 };
@@ -81,7 +68,6 @@ function podcastReducer(
         ...state,
         loading: false,
         podcasts: action.payload,
-        lastFetch: Date.now(),
         error: null,
       };
     case "FETCH_ERROR":
@@ -104,9 +90,9 @@ function podcastReducer(
     case "FETCH_EPISODES_SUCCESS":
       return {
         ...state,
-        episodes: {
-          ...state.episodes,
-          [action.payload.podcastId]: action.payload.episodes,
+        episodeDetails: {
+          ...state.episodeDetails,
+          [action.payload.podcastId]: action.payload.detail,
         },
         episodesLoading: {
           ...state.episodesLoading,
@@ -142,50 +128,8 @@ function podcastReducer(
   }
 }
 
+// Local context - no export
 const PodcastContext = createContext<PodcastContextType | undefined>(undefined);
-
-const isValidEpisodeCache = (cacheData: EpisodeCacheData | null): boolean => {
-  if (!cacheData) return false;
-  const now = Date.now();
-  return now - cacheData.timestamp < CACHE_DURATION;
-};
-
-const getEpisodesFromCache = (podcastId: string): EpisodeCacheData | null => {
-  try {
-    const cached = localStorage.getItem(EPISODES_CACHE_KEY);
-    if (!cached) return null;
-
-    const episodesCache: EpisodesCache = JSON.parse(cached);
-    return episodesCache[podcastId] || null;
-  } catch {
-    return null;
-  }
-};
-
-const saveEpisodesToCache = (
-  podcastId: string,
-  episodes: PodcastLookupResponse
-): void => {
-  try {
-    const cached = localStorage.getItem(EPISODES_CACHE_KEY);
-    const episodesCache: EpisodesCache = cached ? JSON.parse(cached) : {};
-
-    episodesCache[podcastId] = {
-      data: episodes,
-      timestamp: Date.now(),
-    };
-
-    localStorage.setItem(EPISODES_CACHE_KEY, JSON.stringify(episodesCache));
-  } catch {
-    // Silently fail if localStorage is not available
-  }
-};
-
-const extractEpisodes = (apiResponse: PodcastLookupResponse): Episode[] => {
-  const results = apiResponse?.results ?? [];
-  // El primer resultado es el podcast (PodcastDetail), el resto son episodios (Episode)
-  return results.slice(1).filter((item): item is Episode => "trackId" in item);
-};
 
 interface PodcastProviderProps {
   children: ReactNode;
@@ -209,36 +153,18 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
       dispatch({ type: "FETCH_ERROR", payload: errorMessage });
     }
   }, []);
+
   const fetchEpisodes = useCallback(async (podcastId: string) => {
-    const cachedEpisodes = getEpisodesFromCache(podcastId);
-
-    if (isValidEpisodeCache(cachedEpisodes)) {
-      const episodes = extractEpisodes(cachedEpisodes!.data);
-      dispatch({
-        type: "FETCH_EPISODES_SUCCESS",
-        payload: { podcastId, episodes },
-      });
-      return;
-    }
-
     dispatch({ type: "FETCH_EPISODES_START", payload: { podcastId } });
 
     try {
-      // Usar proxy de Vite en lugar de allorigins.win
-      const url = `/lookup?id=${podcastId}&media=podcast&entity=podcastEpisode&limit=20`;
+      const container = Container.getInstance();
+      const podcastService = container.getPodcastService();
+      const detail = await podcastService.getPodcastDetails(podcastId);
 
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const apiResponse = (await response.json()) as PodcastLookupResponse;
-      const episodes = extractEpisodes(apiResponse);
-
-      saveEpisodesToCache(podcastId, apiResponse);
       dispatch({
         type: "FETCH_EPISODES_SUCCESS",
-        payload: { podcastId, episodes },
+        payload: { podcastId, detail },
       });
     } catch (error) {
       dispatch({
@@ -259,6 +185,13 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
     dispatch({ type: "CLEAR_EPISODES_ERROR", payload: { podcastId } });
   }, []);
 
+  const getEpisodes = useCallback(
+    (podcastId: string): EpisodeDTO[] => {
+      return state.episodeDetails[podcastId]?.episodes || [];
+    },
+    [state.episodeDetails]
+  );
+
   useEffect(() => {
     fetchPodcasts();
   }, [fetchPodcasts]);
@@ -269,6 +202,7 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
     clearError,
     fetchEpisodes,
     clearEpisodesError,
+    getEpisodes,
   };
 
   return (

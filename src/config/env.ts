@@ -1,26 +1,27 @@
-// src/config/env.ts
 const getEnvVar = (key: string, defaultValue: string = ""): string => {
   return import.meta.env[key] ?? defaultValue;
 };
 
-const getEnvNumber = (key: string, defaultValue: number): number => {
+const getEnvBoolean = (key: string, defaultValue: boolean): boolean => {
   const value = import.meta.env[key];
-  return value ? Number(value) : defaultValue;
+  return value ? value === "true" : defaultValue;
 };
 
-// Configuración centralizada
+const BASE_URL = getEnvVar("VITE_API_BASE_URL");
+const RSS_PATH = getEnvVar("VITE_ITUNES_RSS_URL", "/us/rss");
+const USE_PROXY = getEnvBoolean("VITE_USE_CORS_PROXY", !import.meta.env.DEV);
+const EPISODES_LIMIT = getEnvVar("VITE_PODCAST_LIMIT");
+
 export const config = {
-  // API URLs
-  itunesRssUrl: getEnvVar(
-    "VITE_ITUNES_RSS_URL",
-    import.meta.env.DEV ? "/rss" : "/us/rss"
-  ),
-  itunesLookupUrl: getEnvVar("VITE_ITUNES_LOOKUP_URL", "/lookup"),
+  topPodcastsUrl: BASE_URL
+    ? `${BASE_URL}${RSS_PATH}/toppodcasts/limit=100/genre=1310/json`
+    : `${RSS_PATH}/toppodcasts/limit=${EPISODES_LIMIT}/genre=1310/json`,
 
-  // API Limits
-  podcastLimit: getEnvNumber("VITE_PODCAST_LIMIT", 100),
-  episodeLimit: getEnvNumber("VITE_EPISODE_LIMIT", 20),
+  lookupUrl: import.meta.env.DEV
+    ? "/lookup" // Proxy de Vite en desarrollo
+    : "/api/episodes", // Tu API en producción
 
-  // Cache TTL
-  cacheTTLHours: getEnvNumber("VITE_CACHE_TTL_HOURS", 24),
+  episodeLimit: getEnvVar("VITE_EPISODE_LIMIT"),
+  cacheTTLHours: getEnvVar("VITE_CACHE_TTL_HOURS"),
+  useCorsProxy: USE_PROXY,
 };

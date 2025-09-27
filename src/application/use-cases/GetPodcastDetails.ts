@@ -5,9 +5,10 @@ import { PodcastDetailDTO, EpisodeDTO } from "../dto/PodcastDTO";
 import { PodcastNotFoundError } from "../../domain/errors/DomainError";
 import { Podcast } from "../../domain/entities/Podcast";
 import { Episode } from "../../domain/entities/Episode";
+import { config } from "../../config/env";
 
 export class GetPodcastDetails {
-  private static readonly CACHE_TTL_HOURS = 24;
+  private static readonly CACHE_TTL_HOURS = config.cacheTTLHours;
 
   constructor(
     private readonly podcastRepository: PodcastRepository,

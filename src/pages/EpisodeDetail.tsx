@@ -2,8 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { usePodcast } from "../context/PodcastContext";
 import { PodcastSidebar } from "../components/PodcastSidebar";
-import { PodcastListDTO } from "../application/dto/PodcastDTO";
-import { Episode } from "../types/podcast";
+import { PodcastListDTO, EpisodeDTO } from "../application/dto/PodcastDTO";
 
 import "./EpisodeDetail.css";
 
@@ -16,10 +15,10 @@ export function EpisodeDetail() {
     podcasts,
     loading,
     error,
-    episodes,
     episodesLoading,
     episodesError,
     fetchEpisodes,
+    getEpisodes,
   } = usePodcast();
 
   useEffect(() => {
@@ -54,13 +53,12 @@ export function EpisodeDetail() {
     );
   }
 
-  const podcastEpisodes = episodes[podcastId || ""] || [];
+  // Use new DDD Context API
+  const podcastEpisodes = getEpisodes(podcastId || "");
   const isLoadingEpisodes = episodesLoading[podcastId || ""] || false;
   const episodeError = episodesError[podcastId || ""];
 
-  const episode = podcastEpisodes.find(
-    (ep: Episode) => ep.trackId.toString() === episodeId
-  );
+  const episode = podcastEpisodes.find((ep: EpisodeDTO) => ep.id === episodeId);
 
   if (isLoadingEpisodes) {
     return (
@@ -81,7 +79,7 @@ export function EpisodeDetail() {
   if (!episode) {
     return (
       <div className="episode-detail-not-found">
-        <p>Not found episode</p>
+        <p>Episode not found</p>
       </div>
     );
   }
@@ -90,14 +88,14 @@ export function EpisodeDetail() {
     return { __html: htmlString };
   };
 
-  const hasAudioUrl = episode.episodeUrl && episode.episodeUrl.trim() !== "";
+  const hasAudioUrl = episode.audioUrl && episode.audioUrl.trim() !== "";
 
   return (
     <div className="episode-detail">
       <PodcastSidebar podcast={podcast} linkTo={`/podcast/${podcastId}`} />
       <div className="episode-detail__main">
         <div className="episode-detail__content">
-          <h2 className="episode-detail__episode-title">{episode.trackName}</h2>
+          <h2 className="episode-detail__episode-title">{episode.title}</h2>
 
           {episode.description && (
             <div
@@ -109,8 +107,8 @@ export function EpisodeDetail() {
           {hasAudioUrl ? (
             <div className="episode-detail__player">
               <audio controls preload="none" className="episode-detail__audio">
-                <source src={episode.episodeUrl} type="audio/mpeg" />
-                <source src={episode.episodeUrl} type="audio/mp4" />
+                <source src={episode.audioUrl} type="audio/mpeg" />
+                <source src={episode.audioUrl} type="audio/mp4" />
                 Your browser does not support audio.
               </audio>
             </div>
