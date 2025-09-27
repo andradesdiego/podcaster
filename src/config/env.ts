@@ -8,19 +8,37 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
   return value ? Number(value) : defaultValue;
 };
 
-// Configuración centralizada
 export const config = {
-  // API URLs
-  itunesRssUrl: getEnvVar(
-    "VITE_ITUNES_RSS_URL",
-    import.meta.env.DEV ? "/rss" : "/us/rss"
-  ),
-  itunesLookupUrl: getEnvVar("VITE_ITUNES_LOOKUP_URL", "/lookup"),
+  // Construir URLs usando las 3 variables
+  topPodcastsUrl: (() => {
+    const base = getEnvVar("VITE_API_BASE_URL");
+    const rssPath = getEnvVar(
+      "VITE_ITUNES_RSS_URL",
+      import.meta.env.DEV ? "/rss" : "/us/rss"
+    );
 
-  // API Limits
+    if (base) {
+      return `${base}${rssPath}/toppodcasts/limit=100/genre=1310/json`;
+    }
+
+    // Fallback sin base URL (desarrollo con proxy)
+    return `${rssPath}/toppodcasts/limit=100/genre=1310/json`;
+  })(),
+
+  lookupUrl: (() => {
+    const base = getEnvVar("VITE_API_BASE_URL");
+    const lookupPath = getEnvVar("VITE_ITUNES_LOOKUP_URL", "/lookup");
+
+    if (base) {
+      return `${base}${lookupPath}`;
+    }
+
+    // Fallback sin base URL (desarrollo con proxy)
+    return lookupPath;
+  })(),
+
+  // Límites
   podcastLimit: getEnvNumber("VITE_PODCAST_LIMIT", 100),
   episodeLimit: getEnvNumber("VITE_EPISODE_LIMIT", 20),
-
-  // Cache TTL
   cacheTTLHours: getEnvNumber("VITE_CACHE_TTL_HOURS", 24),
 };
