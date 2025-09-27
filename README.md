@@ -67,6 +67,14 @@ npm run lint
 - Comprehensive test coverage with 107 passing tests
 - TypeScript-first implementation with strict typing
 
+✅ **Production Deployment:**
+
+- Live deployment on Vercel with automated CI/CD
+- Custom API routes for CORS handling (/api/episodes.js)
+- Environment-specific configuration (dev proxy vs production API)
+- CSS variables system with centralized design tokens
+- Clean architecture without legacy dependencies
+
 ## Tech Stack
 
 - **Frontend:** React 18.3.1 + TypeScript 5.9.2
@@ -76,8 +84,9 @@ npm run lint
 - **Styling:** Custom CSS + CSS Variables (zero UI dependencies)
 - **State:** Context API + DDD Services (hybrid architecture)
 - **Cache:** localStorage with intelligent TTL validation (24h)
-- **API:** iTunes RSS + iTunes Lookup (via Vite proxy)
+- **API:** iTunes RSS + iTunes Lookup (via Vite proxy / Vercel API routes)
 - **Quality:** ESLint + Prettier + strict configuration
+- **Deployment:** Vercel with serverless functions
 
 ## Code Quality
 
@@ -110,6 +119,41 @@ This project implements a complete DDD architecture while maintaining React Cont
                     │ Domain Errors   │
                     │                 │
                     └─────────────────┘
+```
+
+### CORS Solution Architecture
+
+**Development Environment:**
+
+```
+Frontend → Vite Proxy (/lookup) → iTunes API
+```
+
+**Production Environment:**
+
+```
+Frontend → Vercel API Route (/api/episodes) → iTunes API
+```
+
+The `/api/episodes.js` serverless function acts as a transparent CORS proxy, allowing the frontend to fetch episode data without cross-origin restrictions while maintaining the same DDD architecture.
+
+### Environment Configuration
+
+```bash
+# Development (Vite proxy)
+VITE_API_BASE_URL=""
+VITE_ITUNES_RSS_URL="/rss"
+VITE_ITUNES_LOOKUP_URL="/lookup"
+
+# Production (Vercel API routes)
+VITE_API_BASE_URL="https://itunes.apple.com"
+VITE_ITUNES_RSS_URL="/us/rss"
+VITE_ITUNES_LOOKUP_URL="/api/episodes"
+
+# Cache & Limits
+VITE_CACHE_TTL_HOURS=24
+VITE_PODCAST_LIMIT=100
+VITE_EPISODE_LIMIT=20
 ```
 
 ### Key Architectural Decisions
@@ -157,6 +201,12 @@ iTunes API → Infrastructure Mapper → Domain Entity → Use Case → DTO → 
 // Cache stores clean DTOs, not domain entities
 this.cacheRepository.set(CACHE_KEY, podcastDTOs, TTL_HOURS);
 ```
+
+**Cache Behavior:**
+
+- First visit: fetch from API + save to localStorage
+- Subsequent visits: read from localStorage (no network requests)
+- TTL validation: 24-hour expiration per podcast/episode set
 
 **Benefits:**
 
@@ -357,6 +407,39 @@ return podcasts.map(podcast => (
 - Tree shaking for unused code elimination
 - Code splitting for optimized loading
 
+### Migration & Refactoring History
+
+#### v1.6.0 → v1.7.0: Clean Architecture & Production Deployment
+
+**Completed Clean-up:**
+
+- ✅ Eliminated `src/types/podcast.ts` legacy types with iTunes "im:" structure
+- ✅ Removed `usePodcastService` hook (replaced by Context API thin layer)
+- ✅ Migrated all components (HomePage, PodcastDetail, EpisodeDetail) to pure DTOs
+- ✅ Implemented comprehensive CSS variables system (#007297 primary color)
+- ✅ Context API refactored as thin facade over DDD services
+
+**CORS Solution Implementation:**
+
+- ✅ Created Vercel serverless function `/api/episodes.js` for production
+- ✅ Environment-specific URL configuration (Vite proxy vs Vercel API)
+- ✅ Eliminated dependency on unreliable third-party CORS proxies
+- ✅ Production deployment with full episode functionality
+
+**Code Quality Improvements:**
+
+- ✅ Centralized design tokens with CSS variables system
+- ✅ Eliminated hardcoded shadows, colors, and spacing values
+- ✅ English comments throughout codebase for consistency
+- ✅ Removed all legacy code dependencies and circular imports
+
+**Architecture Refinements:**
+
+- ✅ Container DI system maintained for clean dependency injection
+- ✅ Repository pattern simplified without legacy conversion logic
+- ✅ Use Cases now use centralized configuration from `config/env.ts`
+- ✅ Clean data flow: iTunes API → Domain → DTOs → Context → UI
+
 ### Scalability Considerations
 
 #### Future Enterprise Scenarios
@@ -403,6 +486,8 @@ The current podcast domain can be extended with additional bounded contexts:
 - ✅ **Build Tools:** Vite with development/production modes
 - ✅ **Testing:** Comprehensive test suite with 107 passing tests
 - ✅ **Custom Hooks:** useContext abstraction and service integration
+- ✅ **CSS Variables:** Centralized design system implementation
+- ✅ **Production Deployment:** Live on Vercel with API routes
 
 #### Functional Requirements
 
@@ -473,10 +558,18 @@ npm run build   # TypeScript compilation + Vite production build
 npm run preview # Preview production build locally
 ```
 
+**Production Deployment:**
+
+- **Platform:** Vercel with automated CI/CD from GitHub
+- **API Routes:** Serverless functions in `/api` directory
+- **Environment Variables:** Configured in Vercel dashboard
+- **Build:** Automatic builds on push to main branch
+- **CORS Handling:** Custom `/api/episodes.js` endpoint for iTunes API
+
 **Environment Configuration:**
 
 - Development: Vite proxy for iTunes API CORS handling
-- Production: Direct iTunes API calls with error handling
+- Production: Vercel API routes with environment-specific URLs
 - Testing: Mocked HTTP clients and localStorage
 
-This architecture demonstrates enterprise-level thinking while solving the immediate requirements efficiently. The hybrid approach acknowledges technical constraints while establishing patterns that scale to complex business scenarios.
+This architecture demonstrates enterprise-level thinking while solving the immediate requirements efficiently. The hybrid approach acknowledges technical constraints while establishing patterns that scale to complex business scenarios. The production deployment on Vercel with custom API routes provides a robust solution to CORS limitations while maintaining clean architectural boundaries.
