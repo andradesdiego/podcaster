@@ -9,11 +9,6 @@ const getEnvBoolean = (key: string, defaultValue: boolean): boolean => {
 
 const BASE_URL = getEnvVar("VITE_API_BASE_URL");
 const RSS_PATH = getEnvVar("VITE_ITUNES_RSS_URL", "/us/rss");
-const LOOKUP_PATH = getEnvVar("VITE_ITUNES_LOOKUP_URL", "/lookup");
-const CORS_PROXY = getEnvVar(
-  "VITE_CORS_PROXY_URL",
-  "https://api.allorigins.win/get?url="
-);
 const USE_PROXY = getEnvBoolean("VITE_USE_CORS_PROXY", !import.meta.env.DEV);
 
 export const config = {

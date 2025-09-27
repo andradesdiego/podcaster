@@ -41,8 +41,6 @@ export class ItunesPodcastRepository implements PodcastRepository {
   private async fetchPodcastWithEpisodes(podcastId: PodcastId) {
     const url = `${config.lookupUrl}?id=${podcastId.getValue()}`;
 
-    console.log("Final lookup URL:", url);
-
     const response = await this.httpClient.get<ItunesLookupResponse>(url);
 
     // Ambos entornos devuelven formato iTunes directo
