@@ -1,3 +1,4 @@
+// src/config/env.ts
 const getEnvVar = (key: string, defaultValue: string = ""): string => {
   return import.meta.env[key] ?? defaultValue;
 };
@@ -7,31 +8,22 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
   return value ? Number(value) : defaultValue;
 };
 
+// Debug: verificar valores
+const BASE_URL = getEnvVar("VITE_API_BASE_URL");
+const RSS_PATH = getEnvVar("VITE_ITUNES_RSS_URL", "/us/rss");
+const LOOKUP_PATH = getEnvVar("VITE_ITUNES_LOOKUP_URL", "/lookup");
+
+console.log("ENV DEBUG:", { BASE_URL, RSS_PATH, LOOKUP_PATH });
+
 export const config = {
-  get topPodcastsUrl() {
-    const base = getEnvVar("VITE_API_BASE_URL");
-    const rssPath = getEnvVar(
-      "VITE_ITUNES_RSS_URL",
-      import.meta.env.DEV ? "/rss" : "/us/rss"
-    );
+  topPodcastsUrl: BASE_URL
+    ? `${BASE_URL}${RSS_PATH}/toppodcasts/limit=100/genre=1310/json`
+    : `${RSS_PATH}/toppodcasts/limit=100/genre=1310/json`,
 
-    if (base) {
-      return `${base}${rssPath}/toppodcasts/limit=100/genre=1310/json`;
-    }
-    return `${rssPath}/toppodcasts/limit=100/genre=1310/json`;
-  },
+  lookupUrl: BASE_URL ? `${BASE_URL}${LOOKUP_PATH}` : LOOKUP_PATH,
 
-  get lookupUrl() {
-    const base = getEnvVar("VITE_API_BASE_URL");
-    const lookupPath = getEnvVar("VITE_ITUNES_LOOKUP_URL", "/lookup");
-
-    if (base) {
-      return `${base}${lookupPath}`;
-    }
-    return lookupPath;
-  },
-
-  podcastLimit: getEnvNumber("VITE_PODCAST_LIMIT", 100),
   episodeLimit: getEnvNumber("VITE_EPISODE_LIMIT", 20),
   cacheTTLHours: getEnvNumber("VITE_CACHE_TTL_HOURS", 24),
 };
+
+console.log("CONFIG RESULT:", config);
