@@ -6,7 +6,6 @@ import { HttpClient } from "../http/HttpClient";
 import {
   ItunesMappers,
   ItunesTopPodcastsResponse,
-  ItunesLookupResponse,
 } from "../mappers/ItunesMappers";
 import { config } from "../../config/env";
 
@@ -39,16 +38,19 @@ export class ItunesPodcastRepository implements PodcastRepository {
   }
 
   private async fetchPodcastWithEpisodes(podcastId: PodcastId) {
-    const url = `${config.lookupUrl}&id=${podcastId.getValue()}&media=podcast&entity=podcastEpisode&limit=${config.episodeLimit}`;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL;
+    const lookupPath = import.meta.env.VITE_ITUNES_LOOKUP_URL || "/lookup";
 
-    const allOriginsResponse = await this.httpClient.get<{
-      contents: string;
-      status: { http_code: number };
-    }>(url);
+    const url = baseUrl
+      ? `https://api.allorigins.win/get?url=${encodeURIComponent(`${baseUrl}${lookupPath}?id=${podcastId.getValue()}&media=podcast&entity=podcastEpisode&limit=20`)}`
+      : `${lookupPath}?id=${podcastId.getValue()}&media=podcast&entity=podcastEpisode&limit=20`;
 
-    const itunesResponse: ItunesLookupResponse = JSON.parse(
-      allOriginsResponse.contents
-    );
+    console.log("Final lookup URL:", url);
+
+    const response = await this.httpClient.get<any>(url);
+
+    // Si es allorigins, parsear contents
+    const itunesResponse = baseUrl ? JSON.parse(response.contents) : response;
 
     return ItunesMappers.mapLookupResponse(
       itunesResponse,
