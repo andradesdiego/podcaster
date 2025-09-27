@@ -243,7 +243,6 @@ npm run lint
 - ✅ **v1.4.0** - Complete DDD foundation
 - ✅ **v1.5.0** - Context API migrated to use DDD services
 - ✅ **v1.6.0** - All components migrated to clean DTOs
-- 🚧 **Next:** Test suite updates for new architecture
 - 📋 **Future:** Additional domain entities (users, subscriptions)
 
 ## Testing
