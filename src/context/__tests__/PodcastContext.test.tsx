@@ -67,7 +67,7 @@ describe("PodcastContext", () => {
       .mockImplementation(() => {});
 
     expect(() => render(<TestComponent />)).toThrow(
-      "usePodcast must be used within a PodcastProvider"
+      "usePodcast must be used within a PodcastProvider",
     );
 
     consoleError.mockRestore();
@@ -89,7 +89,7 @@ describe("PodcastContext", () => {
 
   it("handles fetch errors", async () => {
     mockPodcastService.getTopPodcasts.mockRejectedValueOnce(
-      new Error("Network error")
+      new Error("Network error"),
     );
 
     renderWithProvider(<TestComponent />);
@@ -104,7 +104,7 @@ describe("PodcastContext", () => {
 
   it("clears errors", async () => {
     mockPodcastService.getTopPodcasts.mockRejectedValueOnce(
-      new Error("Test error")
+      new Error("Test error"),
     );
 
     renderWithProvider(<TestComponent />);
