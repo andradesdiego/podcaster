@@ -8,7 +8,7 @@ const getEnvNumber = (key: string, defaultValue: number): number => {
 };
 
 export const config = {
-  topPodcastsUrl: (() => {
+  get topPodcastsUrl() {
     const base = getEnvVar("VITE_API_BASE_URL");
     const rssPath = getEnvVar(
       "VITE_ITUNES_RSS_URL",
@@ -18,22 +18,18 @@ export const config = {
     if (base) {
       return `${base}${rssPath}/toppodcasts/limit=100/genre=1310/json`;
     }
-
     return `${rssPath}/toppodcasts/limit=100/genre=1310/json`;
-  })(),
+  },
 
-  lookupUrl: (() => {
+  get lookupUrl() {
     const base = getEnvVar("VITE_API_BASE_URL");
     const lookupPath = getEnvVar("VITE_ITUNES_LOOKUP_URL", "/lookup");
-
-    console.log("Config debug - base:", base, "lookupPath:", lookupPath);
 
     if (base) {
       return `${base}${lookupPath}`;
     }
-
     return lookupPath;
-  })(),
+  },
 
   podcastLimit: getEnvNumber("VITE_PODCAST_LIMIT", 100),
   episodeLimit: getEnvNumber("VITE_EPISODE_LIMIT", 20),
