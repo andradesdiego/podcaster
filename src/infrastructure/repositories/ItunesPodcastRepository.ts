@@ -8,17 +8,14 @@ import {
   ItunesTopPodcastsResponse,
   ItunesLookupResponse,
 } from "../mappers/ItunesMappers";
+import { config } from "../../config/env";
 
 export class ItunesPodcastRepository implements PodcastRepository {
-  private readonly TOP_PODCASTS_URL =
-    "/api/us/rss/toppodcasts/limit=100/genre=1310/json";
-
   constructor(private readonly httpClient: HttpClient) {}
 
   async getTopPodcasts(): Promise<Podcast[]> {
-    const response = await this.httpClient.get<ItunesTopPodcastsResponse>(
-      this.TOP_PODCASTS_URL
-    );
+    const url = `${config.itunesRssUrl}/toppodcasts/limit=${config.podcastLimit}/genre=1310/json`;
+    const response = await this.httpClient.get<ItunesTopPodcastsResponse>(url);
     return ItunesMappers.mapTopPodcastsResponse(response);
   }
 

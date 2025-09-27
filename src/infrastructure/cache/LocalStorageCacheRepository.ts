@@ -1,4 +1,5 @@
 import { CacheRepository } from "../../application/ports/CacheRepository";
+import { config } from "../../config/env";
 
 export class LocalStorageCacheRepository implements CacheRepository {
   private readonly TTL_KEY_SUFFIX = "_ttl";
@@ -12,7 +13,7 @@ export class LocalStorageCacheRepository implements CacheRepository {
     }
   }
 
-  set<T>(key: string, value: T, ttlHours: number = 24): void {
+  set<T>(key: string, value: T, ttlHours: number = config.cacheTTLHours): void {
     try {
       localStorage.setItem(key, JSON.stringify(value));
       const expirationTime = Date.now() + ttlHours * 60 * 60 * 1000;
