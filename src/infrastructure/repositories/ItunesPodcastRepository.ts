@@ -39,8 +39,20 @@ export class ItunesPodcastRepository implements PodcastRepository {
   }
 
   private async fetchPodcastWithEpisodes(podcastId: PodcastId) {
-    const url = `${config.lookupUrl}?id=${podcastId.getValue()}&media=podcast&entity=podcastEpisode&limit=${config.episodeLimit}`;
-    const response = await this.httpClient.get<ItunesLookupResponse>(url);
-    return ItunesMappers.mapLookupResponse(response, podcastId.getValue());
+    const url = `${config.lookupUrl}&id=${podcastId.getValue()}&media=podcast&entity=podcastEpisode&limit=${config.episodeLimit}`;
+
+    const allOriginsResponse = await this.httpClient.get<{
+      contents: string;
+      status: { http_code: number };
+    }>(url);
+
+    const itunesResponse: ItunesLookupResponse = JSON.parse(
+      allOriginsResponse.contents
+    );
+
+    return ItunesMappers.mapLookupResponse(
+      itunesResponse,
+      podcastId.getValue()
+    );
   }
 }

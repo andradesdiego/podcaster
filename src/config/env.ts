@@ -20,7 +20,9 @@ export const config = {
     ? `${BASE_URL}${RSS_PATH}/toppodcasts/limit=100/genre=1310/json`
     : `${RSS_PATH}/toppodcasts/limit=100/genre=1310/json`,
 
-  lookupUrl: BASE_URL ? `${BASE_URL}${LOOKUP_PATH}` : LOOKUP_PATH,
+  lookupUrl: BASE_URL
+    ? `https://api.allorigins.win/get?url=${encodeURIComponent(BASE_URL + LOOKUP_PATH)}`
+    : LOOKUP_PATH,
 
   episodeLimit: getEnvNumber("VITE_EPISODE_LIMIT", 20),
   cacheTTLHours: getEnvNumber("VITE_CACHE_TTL_HOURS", 24),
