@@ -1,11 +1,11 @@
-// src/hooks/usePodcastDDD.ts
 import { useState, useEffect } from "react";
 import { Container } from "../infrastructure/di/Container";
 import { PodcastEntry } from "../types/podcast";
+import { PodcastListDTO } from "../application/dto/PodcastDTO";
 
-// Exactamente la misma interface que usePodcast del Context
-export const usePodcastDDD = () => {
+export const usePodcastService = () => {
   const [podcasts, setPodcasts] = useState<PodcastEntry[]>([]);
+  const [podcastDTOs, setPodcastDTOs] = useState<PodcastListDTO[]>([]); // ← Guardar DTOs también
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,25 +18,25 @@ export const usePodcastDDD = () => {
         setLoading(true);
         setError(null);
 
-        // Usamos el servicio DDD y convertimos a PodcastEntry[]
         const dddPodcasts = await podcastService.getTopPodcasts();
+        setPodcastDTOs(dddPodcasts);
 
         // Convertir DTOs a PodcastEntry (formato que espera la UI)
-        const podcastEntries: PodcastEntry[] = dddPodcasts.map((podcast) => ({
+        const podcastEntries: PodcastEntry[] = dddPodcasts.map((dto) => ({
           id: {
             attributes: {
-              "im:id": podcast.id,
+              "im:id": dto.id,
             },
           },
           "im:name": {
-            label: podcast.title,
+            label: dto.title,
           },
           "im:artist": {
-            label: podcast.author,
+            label: dto.author,
           },
           "im:image": [
             {
-              label: podcast.image || "",
+              label: dto.image || "",
               attributes: {
                 height: "170",
               },
@@ -54,7 +54,37 @@ export const usePodcastDDD = () => {
     };
 
     loadPodcasts();
-  }, []);
+  }, [podcastService]);
 
-  return { podcasts, loading, error };
+  const filterPodcasts = (searchTerm: string): PodcastEntry[] => {
+    if (!searchTerm.trim()) return podcasts;
+
+    // Usar el servicio para filtrar DTOs
+    const filteredDTOs = podcastService.filterPodcasts(podcastDTOs, searchTerm);
+
+    // Convertir DTOs filtrados a PodcastEntry
+    return filteredDTOs.map((dto) => ({
+      id: {
+        attributes: {
+          "im:id": dto.id,
+        },
+      },
+      "im:name": {
+        label: dto.title,
+      },
+      "im:artist": {
+        label: dto.author,
+      },
+      "im:image": [
+        {
+          label: dto.image || "",
+          attributes: {
+            height: "170",
+          },
+        },
+      ],
+    }));
+  };
+
+  return { podcasts, loading, error, filterPodcasts };
 };

@@ -2,25 +2,24 @@
 import { useNavigate } from "react-router-dom";
 import { PodcastCard } from "../components/PodcastCard";
 import { SearchInput } from "../components/SearchInput";
-import { usePodcastFilter } from "../hooks/usePodcastFilter";
-// import { usePodcast } from "../context/PodcastContext";  // ← Comentamos
-import { usePodcastDDD } from "../hooks/usePodcastDDD"; // ← Añadimos
+import { usePodcastService } from "../hooks/usePodcastService";
 import { PodcastEntry } from "../types/podcast";
 import "./HomePage.css";
+import { useState } from "react";
 
 export function HomePage() {
   const navigate = useNavigate();
-  // const { podcasts, loading, error } = usePodcast();        // ← Comentamos
-  const { podcasts, loading, error } = usePodcastDDD(); // ← Cambiamos
+  const { loading, error, filterPodcasts } = usePodcastService();
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const filteredPodcasts = filterPodcasts(searchTerm); // ← Usar del hook DDD
+  const resultsCount = filteredPodcasts.length;
 
   const getImage = (pod: PodcastEntry): string => {
     const imgs = pod?.["im:image"] ?? [];
     const by170 = imgs.find((x) => x?.attributes?.height === "170");
     return by170?.label ?? imgs.at(-1)?.label ?? "";
   };
-
-  const { filteredPodcasts, searchTerm, setSearchTerm, resultsCount } =
-    usePodcastFilter(podcasts);
 
   const handlePodcastClick = (podcastId: string) => {
     navigate(`/podcast/${podcastId}`);
