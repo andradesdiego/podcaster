@@ -21,12 +21,9 @@ export const config = {
     ? `${BASE_URL}${RSS_PATH}/toppodcasts/limit=100/genre=1310/json`
     : `${RSS_PATH}/toppodcasts/limit=100/genre=1310/json`,
 
-  lookupUrl: (() => {
-    const fullUrl = BASE_URL ? `${BASE_URL}${LOOKUP_PATH}` : LOOKUP_PATH;
-    return USE_PROXY && BASE_URL
-      ? `${CORS_PROXY}${encodeURIComponent(fullUrl)}`
-      : fullUrl;
-  })(),
+  lookupUrl: import.meta.env.DEV
+    ? "/lookup" // Proxy de Vite en desarrollo
+    : "/api/episodes", // Tu API en producción
 
   episodeLimit: 20,
   cacheTTLHours: 24,

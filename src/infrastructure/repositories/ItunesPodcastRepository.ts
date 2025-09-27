@@ -4,6 +4,7 @@ import { Episode } from "../../domain/entities/Episode";
 import { PodcastId } from "../../domain/value-objects/PodcastId";
 import { HttpClient } from "../http/HttpClient";
 import {
+  ItunesLookupResponse,
   ItunesMappers,
   ItunesTopPodcastsResponse,
 } from "../mappers/ItunesMappers";
@@ -38,18 +39,13 @@ export class ItunesPodcastRepository implements PodcastRepository {
   }
 
   private async fetchPodcastWithEpisodes(podcastId: PodcastId) {
-    const url = `${config.lookupUrl}?id=${podcastId.getValue()}&media=podcast&entity=podcastEpisode&limit=${config.episodeLimit}`;
+    const url = `${config.lookupUrl}?id=${podcastId.getValue()}`;
 
-    const response = await this.httpClient.get<any>(url);
+    console.log("Final lookup URL:", url);
 
-    // Parse response based on whether CORS proxy was used
-    const itunesResponse = config.useCorsProxy
-      ? JSON.parse(response.contents)
-      : response;
+    const response = await this.httpClient.get<ItunesLookupResponse>(url);
 
-    return ItunesMappers.mapLookupResponse(
-      itunesResponse,
-      podcastId.getValue()
-    );
+    // Ambos entornos devuelven formato iTunes directo
+    return ItunesMappers.mapLookupResponse(response, podcastId.getValue());
   }
 }
