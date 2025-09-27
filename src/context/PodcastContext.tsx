@@ -8,22 +8,13 @@ import {
   useEffect,
   useCallback,
 } from "react";
-import {
-  ApiResponse,
-  PodcastEntry,
-  Episode,
-  PodcastLookupResponse,
-} from "../types/podcast";
+import { Episode, PodcastLookupResponse } from "../types/podcast";
 
-const CACHE_KEY = "podcast-cache";
+import { Container } from "../infrastructure/di/Container";
+import { PodcastListDTO } from "../application/dto/PodcastDTO";
+
 const EPISODES_CACHE_KEY = "episodes-cache";
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-const TOP_PODCASTS_URL = "/rss/toppodcasts/limit=100/genre=1310/json";
-
-interface CacheData {
-  data: ApiResponse;
-  timestamp: number;
-}
 
 interface EpisodeCacheData {
   data: PodcastLookupResponse;
@@ -35,11 +26,11 @@ interface EpisodesCache {
 }
 
 interface PodcastState {
-  podcasts: PodcastEntry[];
+  podcasts: PodcastListDTO[]; // Changed from PodcastEntry[]
   loading: boolean;
   error: string | null;
   lastFetch: number | null;
-  // Episodes state
+  // Episodes state (keep as is for now)
   episodes: { [podcastId: string]: Episode[] };
   episodesLoading: { [podcastId: string]: boolean };
   episodesError: { [podcastId: string]: string | null };
@@ -47,7 +38,7 @@ interface PodcastState {
 
 type PodcastAction =
   | { type: "FETCH_START" }
-  | { type: "FETCH_SUCCESS"; payload: PodcastEntry[] }
+  | { type: "FETCH_SUCCESS"; payload: PodcastListDTO[] } // Changed from PodcastEntry[]
   | { type: "FETCH_ERROR"; payload: string }
   | { type: "CLEAR_ERROR" }
   | { type: "FETCH_EPISODES_START"; payload: { podcastId: string } }
@@ -69,7 +60,7 @@ interface PodcastContextType extends PodcastState {
 }
 
 const initialState: PodcastState = {
-  podcasts: [],
+  podcasts: [], // Now PodcastListDTO[]
   loading: false,
   error: null,
   lastFetch: null,
@@ -153,25 +144,10 @@ function podcastReducer(
 
 const PodcastContext = createContext<PodcastContextType | undefined>(undefined);
 
-const isValidCache = (cacheData: CacheData | null): boolean => {
-  if (!cacheData) return false;
-  const now = Date.now();
-  return now - cacheData.timestamp < CACHE_DURATION;
-};
-
 const isValidEpisodeCache = (cacheData: EpisodeCacheData | null): boolean => {
   if (!cacheData) return false;
   const now = Date.now();
   return now - cacheData.timestamp < CACHE_DURATION;
-};
-
-const getFromCache = (): CacheData | null => {
-  try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    return cached ? JSON.parse(cached) : null;
-  } catch {
-    return null;
-  }
 };
 
 const getEpisodesFromCache = (podcastId: string): EpisodeCacheData | null => {
@@ -183,18 +159,6 @@ const getEpisodesFromCache = (podcastId: string): EpisodeCacheData | null => {
     return episodesCache[podcastId] || null;
   } catch {
     return null;
-  }
-};
-
-const saveToCache = (data: ApiResponse): void => {
-  try {
-    const cacheData: CacheData = {
-      data,
-      timestamp: Date.now(),
-    };
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-  } catch {
-    // Silently fail if localStorage is not available
   }
 };
 
@@ -217,10 +181,6 @@ const saveEpisodesToCache = (
   }
 };
 
-const extractPodcasts = (apiResponse: ApiResponse): PodcastEntry[] => {
-  return apiResponse?.feed?.entry ?? [];
-};
-
 const extractEpisodes = (apiResponse: PodcastLookupResponse): Episode[] => {
   const results = apiResponse?.results ?? [];
   // El primer resultado es el podcast (PodcastDetail), el resto son episodios (Episode)
@@ -235,35 +195,20 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
   const [state, dispatch] = useReducer(podcastReducer, initialState);
 
   const fetchPodcasts = useCallback(async () => {
-    const cachedData = getFromCache();
-
-    if (isValidCache(cachedData)) {
-      const podcasts = extractPodcasts(cachedData!.data);
-      dispatch({ type: "FETCH_SUCCESS", payload: podcasts });
-      return;
-    }
+    const container = Container.getInstance();
+    const podcastService = container.getPodcastService();
 
     dispatch({ type: "FETCH_START" });
 
     try {
-      const response = await fetch(TOP_PODCASTS_URL);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = (await response.json()) as ApiResponse;
-      const podcasts = extractPodcasts(data);
-
-      saveToCache(data);
+      const podcasts = await podcastService.getTopPodcasts();
       dispatch({ type: "FETCH_SUCCESS", payload: podcasts });
     } catch (error) {
-      dispatch({
-        type: "FETCH_ERROR",
-        payload: error instanceof Error ? error.message : "Unknown error",
-      });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      dispatch({ type: "FETCH_ERROR", payload: errorMessage });
     }
   }, []);
-
   const fetchEpisodes = useCallback(async (podcastId: string) => {
     const cachedEpisodes = getEpisodesFromCache(podcastId);
 

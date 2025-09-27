@@ -1,8 +1,9 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { usePodcast } from "../context/PodcastContext";
-import { PodcastEntry, Episode } from "../types/podcast";
 import { PodcastSidebar } from "../components/PodcastSidebar";
+import { PodcastListDTO } from "../application/dto/PodcastDTO";
+import { Episode } from "../types/podcast";
 
 import "./PodcastDetail.css";
 
@@ -40,9 +41,7 @@ export function PodcastDetail() {
     );
   }
 
-  const podcast = podcasts.find(
-    (p: PodcastEntry) => p?.id?.attributes?.["im:id"] === id
-  );
+  const podcast = podcasts.find((p: PodcastListDTO) => p.id === id);
 
   if (!podcast) {
     return (
@@ -86,27 +85,6 @@ export function PodcastDetail() {
 
   return (
     <div className="podcast-detail">
-      {/* <div className="podcast-detail__sidebar">
-        <div className="podcast-detail__image-container">
-          <img
-            src={image}
-            alt={`${title} podcast cover`}
-            className="podcast-detail__image"
-          />
-        </div>
-        <div className="podcast-detail__info">
-          <div className="podcast-detail__title-link">
-            <h1 className="podcast-detail__title">{title}</h1>
-          </div>
-          <div className="podcast-detail__author-link">
-            <p className="podcast-detail__author">by {author}</p>
-          </div>
-          <div className="podcast-detail__description">
-            <h3 className="podcast-detail__description-title">Description:</h3>
-            <p> {title}</p>
-          </div>
-        </div>
-      </div> */}
       <PodcastSidebar podcast={podcast} />
       <div className="podcast-detail__main">
         <div className="podcast-detail__episodes-header">

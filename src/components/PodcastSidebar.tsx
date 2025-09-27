@@ -1,23 +1,19 @@
+// Update PodcastSidebar.tsx:
+
 import { Link } from "react-router-dom";
-import { PodcastEntry } from "../types/podcast";
+import { PodcastListDTO } from "../application/dto/PodcastDTO";
 import "./PodcastSidebar.css";
 
 interface PodcastSidebarProps {
-  podcast: PodcastEntry;
-  linkTo?: string; // Optional - if provided, makes image/title/author clickable
+  podcast: PodcastListDTO; // Changed from PodcastEntry
+  linkTo?: string;
 }
 
 export function PodcastSidebar({ podcast, linkTo }: PodcastSidebarProps) {
-  const getImage = (pod: PodcastEntry): string => {
-    const imgs = pod?.["im:image"] ?? [];
-    const by600 = imgs.find((x) => x?.attributes?.height === "600");
-    const by170 = imgs.find((x) => x?.attributes?.height === "170");
-    return by600?.label || by170?.label || imgs.at(-1)?.label || "";
-  };
-
-  const title = podcast?.["im:name"]?.label || "";
-  const author = podcast?.["im:artist"]?.label || "";
-  const image = getImage(podcast);
+  // Simplified - DTO already has clean properties
+  const title = podcast.title;
+  const author = podcast.author;
+  const image = podcast.image;
 
   const ImageComponent = linkTo ? (
     <Link to={linkTo}>
