@@ -1,4 +1,3 @@
-// src/config/env.ts
 const getEnvVar = (key: string, defaultValue: string = ""): string => {
   return import.meta.env[key] ?? defaultValue;
 };
