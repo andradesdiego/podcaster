@@ -26,6 +26,8 @@ export const config = {
     const base = getEnvVar("VITE_API_BASE_URL");
     const lookupPath = getEnvVar("VITE_ITUNES_LOOKUP_URL", "/lookup");
 
+    console.log("Config debug - base:", base, "lookupPath:", lookupPath);
+
     if (base) {
       return `${base}${lookupPath}`;
     }
