@@ -29,6 +29,14 @@ A modern podcast application built with React and Domain-Driven Design architect
 - Environment configuration system
 - **Complete component migration to DDD + Context API hybrid**
 
+✅ **Production Deployment:**
+
+- Live deployment on Vercel with CORS handling
+- Custom API routes for iTunes episode fetching
+- Environment-specific configuration (dev proxy vs production API)
+- CSS variables system with centralized design tokens
+- Clean architecture without legacy code dependencies
+
 ## Tech Stack
 
 - **Frontend:** React 18.3.1 + TypeScript 5.9.2
@@ -38,8 +46,9 @@ A modern podcast application built with React and Domain-Driven Design architect
 - **Styling:** Custom CSS + CSS Variables (zero UI dependencies)
 - **State:** Context API + DDD Services (hybrid architecture)
 - **Cache:** localStorage with intelligent TTL validation (24h)
-- **API:** iTunes RSS + iTunes Lookup (via Vite proxy)
+- **API:** iTunes RSS + iTunes Lookup (via Vite proxy / Vercel API routes)
 - **Quality:** ESLint + Prettier + strict configuration
+- **Deployment:** Vercel with serverless functions
 
 ## Application Views
 
@@ -59,7 +68,25 @@ src/
 ├── context/                   # Context API + DDD integration
 ├── components/                # Reusable UI components (use DTOs)
 └── pages/                     # Application pages (use DTOs)
+api/
+└── episodes.js                # Vercel serverless function (CORS proxy)
 ```
+
+### CORS Solution Architecture
+
+**Development Environment:**
+
+```
+Frontend → Vite Proxy (/lookup) → iTunes API
+```
+
+**Production Environment:**
+
+```
+Frontend → Vercel API Route (/api/episodes) → iTunes API
+```
+
+The `/api/episodes.js` serverless function acts as a transparent CORS proxy, allowing the frontend to fetch episode data without cross-origin restrictions while maintaining the same DDD architecture.
 
 ## Data Flow Architecture
 
@@ -188,6 +215,12 @@ this.cacheRepository.set(CACHE_KEY, podcastDTOs, TTL_HOURS);
 - **Serialization:** DTOs are JSON-friendly, entities are not
 - **Consistency:** UI always receives same DTO structure
 
+**Cache Behavior:**
+
+- First visit: fetch from API + save to localStorage
+- Subsequent visits: read from localStorage (no network requests)
+- TTL validation: 24-hour expiration per podcast/episode set
+
 ### Data Integrity Guarantees
 
 1. **Domain Boundaries:** Entities never leave Application layer
@@ -200,19 +233,23 @@ This architecture ensures clean separation between external APIs, business logic
 
 ### Configuration
 
-Environment variables in `.env`:
+Environment variables supporting multi-environment deployment:
 
 ```bash
-# API Limits
+# Development (Vite proxy)
+VITE_API_BASE_URL=""
+VITE_ITUNES_RSS_URL="/rss"
+VITE_ITUNES_LOOKUP_URL="/lookup"
+
+# Production (Vercel API routes)
+VITE_API_BASE_URL="https://itunes.apple.com"
+VITE_ITUNES_RSS_URL="/us/rss"
+VITE_ITUNES_LOOKUP_URL="/api/episodes"
+
+# Cache & Limits
+VITE_CACHE_TTL_HOURS=24
 VITE_PODCAST_LIMIT=100
 VITE_EPISODE_LIMIT=20
-
-# Cache TTL (hours)
-VITE_CACHE_TTL_HOURS=24
-
-# API URLs (auto-detected by environment)
-# Development: /rss, /lookup (uses proxy)
-# Production: /us/rss, /lookup (direct URLs)
 ```
 
 ## Development
@@ -238,12 +275,31 @@ npm run test:coverage
 npm run lint
 ```
 
-## Migration Status
+## Migration & Refactoring History
 
-- ✅ **v1.4.0** - Complete DDD foundation
-- ✅ **v1.5.0** - Context API migrated to use DDD services
-- ✅ **v1.6.0** - All components migrated to clean DTOs
-- 📋 **Future:** Additional domain entities (users, subscriptions)
+### v1.6.0 → v1.7.0: Clean Architecture Refactor
+
+**Completed Migrations:**
+
+- ✅ Eliminated `src/types/podcast.ts` legacy types
+- ✅ Removed `usePodcastService` hook (replaced by Context)
+- ✅ Migrated all components to use clean DTOs
+- ✅ Implemented comprehensive CSS variables system
+- ✅ Context API as thin layer over DDD services
+
+**CORS Solution Implementation:**
+
+- ✅ Created Vercel API route for episode fetching
+- ✅ Environment-specific URL configuration
+- ✅ Eliminated dependency on unreliable CORS proxies
+- ✅ Production deployment with full functionality
+
+**Code Quality Improvements:**
+
+- ✅ Centralized design tokens with CSS variables
+- ✅ Eliminated hardcoded shadow and color values
+- ✅ English comments throughout codebase
+- ✅ Removed legacy code dependencies
 
 ## Testing
 
@@ -266,6 +322,8 @@ npm run lint
 - Native HTML5 player
 - HTML description rendering
 - TypeScript throughout
+- **CSS variables implementation ✅**
+- **Production deployment ✅**
 
 ## Architecture Constraints & Trade-offs
 
@@ -314,4 +372,12 @@ In such scenarios, Context API would manage state of multiple aggregates while D
 - ⚠️ **Architecture:** Introduces layer mixing that complicates responsibility boundaries
 - ⚠️ **Maintenance:** Additional complexity in data flow for state synchronization
 
-This documentation serves to acknowledge the architectural tension while demonstrating understanding of both current constraints and long-term architectural vision.
+**Production Deployment Benefits:**
+
+- ✅ Full DDD architecture with clean separation of concerns
+- ✅ Production-ready deployment with CORS handling
+- ✅ Environment-specific configuration without code changes
+- ✅ Maintainable CSS with design tokens
+- ✅ Clean DTOs eliminating iTunes API complexity
+
+This documentation serves to acknowledge the architectural tension while demonstrating understanding of both current constraints and long-term architectural vision. The architecture demonstrates enterprise-grade patterns while meeting specific assessment requirements and deployment constraints.
