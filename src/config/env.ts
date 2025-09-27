@@ -1,5 +1,12 @@
+// src/config/env.ts
+
 const getEnvVar = (key: string, defaultValue: string = ""): string => {
   return import.meta.env[key] ?? defaultValue;
+};
+
+const getEnvNumber = (key: string, defaultValue: number): number => {
+  const value = import.meta.env[key];
+  return value ? Number(value) : defaultValue;
 };
 
 const getEnvBoolean = (key: string, defaultValue: boolean): boolean => {
@@ -17,11 +24,9 @@ export const config = {
     ? `${BASE_URL}${RSS_PATH}/toppodcasts/limit=100/genre=1310/json`
     : `${RSS_PATH}/toppodcasts/limit=${EPISODES_LIMIT}/genre=1310/json`,
 
-  lookupUrl: import.meta.env.DEV
-    ? "/lookup" // Proxy de Vite en desarrollo
-    : "/api/episodes", // Tu API en producción
+  lookupUrl: import.meta.env.DEV ? "/lookup" : "/api/episodes",
 
-  episodeLimit: getEnvVar("VITE_EPISODE_LIMIT"),
-  cacheTTLHours: getEnvVar("VITE_CACHE_TTL_HOURS"),
+  episodeLimit: getEnvNumber("VITE_EPISODE_LIMIT", 20), // ✅ number
+  cacheTTLHours: getEnvNumber("VITE_CACHE_TTL_HOURS", 24), // ✅ number
   useCorsProxy: USE_PROXY,
 };
