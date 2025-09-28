@@ -1,11 +1,11 @@
-import { PodcastId } from "../../domain/value-objects/PodcastId";
-import { PodcastRepository } from "../ports/PodcastRepository";
-import { CacheRepository } from "../ports/CacheRepository";
-import { PodcastDetailDTO, EpisodeDTO } from "../dto/PodcastDTO";
-import { PodcastNotFoundError } from "../../domain/errors/DomainError";
-import { Podcast } from "../../domain/entities/Podcast";
-import { Episode } from "../../domain/entities/Episode";
-import { config } from "../../config/env";
+import { PodcastId } from '../../domain/value-objects/PodcastId';
+import { PodcastRepository } from '../ports/PodcastRepository';
+import { CacheRepository } from '../ports/CacheRepository';
+import { PodcastDetailDTO, EpisodeDTO } from '../dto/PodcastDTO';
+import { PodcastNotFoundError } from '../../domain/errors/DomainError';
+import { Podcast } from '../../domain/entities/Podcast';
+import { Episode } from '../../domain/entities/Episode';
+import { config } from '../../config/env';
 
 export class GetPodcastDetails {
   private static readonly CACHE_TTL_HOURS = config.cacheTTLHours;
@@ -71,7 +71,7 @@ export class GetPodcastDetails {
       title: episode.getTitle(),
       description: episode.getDescription(),
       audioUrl: episode.getAudioUrl() || undefined,
-      duration: episode.getDuration() || undefined,
+      duration: episode.getMinutesForTable() || undefined,
       publishedAt: episode.getFormattedDate(),
       podcastId: episode.getPodcastId().getValue(),
     }));

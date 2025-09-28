@@ -29,46 +29,6 @@ export function PodcastDetail() {
     }
   }, [id, loadEpisodes, episodes]);
 
-  const formatDuration = (duration?: number): string => {
-    if (!duration) return '-';
-
-    const totalSeconds = Math.floor(duration / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-
-    if (minutes >= 60) {
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      return `${hours}:${remainingMinutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  const formatDate = (dateString: string): string => {
-    if (!dateString || dateString.trim() === '') {
-      return '-';
-    }
-
-    try {
-      const date = new Date(dateString);
-
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        return '-';
-      }
-
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      });
-    } catch (error) {
-      console.warn('Error parsing date:', dateString, error);
-      return '-';
-    }
-  };
-
   if (loading) {
     return (
       <div className="podcast-detail-loading">
@@ -139,12 +99,8 @@ export function PodcastDetail() {
                         {episode.title}
                       </Link>
                     </td>
-                    <td className="episode-date">
-                      {formatDate(episode.publishedAt)}
-                    </td>
-                    <td className="episode-duration">
-                      {formatDuration(episode.duration)}
-                    </td>
+                    <td className="episode-date">{episode.publishedAt}</td>
+                    <td className="episode-duration">{episode.duration}</td>
                   </tr>
                 ))}
               </tbody>
