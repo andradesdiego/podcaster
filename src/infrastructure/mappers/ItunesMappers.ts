@@ -1,5 +1,5 @@
-import { Podcast, PodcastData } from "../../domain/entities/Podcast";
-import { Episode, EpisodeData } from "../../domain/entities/Episode";
+import { Podcast, PodcastData } from '../../domain/entities/Podcast';
+import { Episode, EpisodeData } from '../../domain/entities/Episode';
 
 export interface ItunesTopPodcastsResponse {
   feed: {
@@ -8,10 +8,10 @@ export interface ItunesTopPodcastsResponse {
 }
 
 export interface ItunesTopPodcastEntry {
-  id: { attributes: { "im:id": string } };
-  "im:name": { label: string };
-  "im:artist": { label: string };
-  "im:image": Array<{ label: string }>;
+  id: { attributes: { 'im:id': string } };
+  'im:name': { label: string };
+  'im:artist': { label: string };
+  'im:image': Array<{ label: string }>;
   summary?: { label: string };
 }
 
@@ -40,11 +40,11 @@ export class ItunesMappers {
   ): Podcast[] {
     return response.feed.entry.map((entry) => {
       const podcastData: PodcastData = {
-        id: entry.id.attributes["im:id"],
-        title: entry["im:name"].label,
-        author: entry["im:artist"].label,
-        description: entry.summary?.label || "",
-        image: this.extractImageUrl(entry["im:image"]),
+        id: entry.id.attributes['im:id'],
+        title: entry['im:name'].label,
+        author: entry['im:artist'].label,
+        description: entry.summary?.label || '',
+        image: this.extractImageUrl(entry['im:image']),
       };
 
       return Podcast.create(podcastData);
@@ -60,10 +60,10 @@ export class ItunesMappers {
     }
 
     const podcastResult = response.results.find(
-      (result) => result.kind === undefined || result.kind === "podcast"
+      (result) => result.kind === undefined || result.kind === 'podcast'
     );
     const episodeResults = response.results.filter(
-      (result) => result.kind === "podcast-episode"
+      (result) => result.kind === 'podcast-episode'
     );
 
     let podcast: Podcast | null = null;
@@ -73,10 +73,10 @@ export class ItunesMappers {
         title:
           podcastResult.collectionName ||
           podcastResult.collectionCensoredName ||
-          "",
-        author: podcastResult.artistName || "",
-        description: podcastResult.description || "",
-        image: podcastResult.artworkUrl600 || "",
+          '',
+        author: podcastResult.artistName || '',
+        description: podcastResult.description || '',
+        image: podcastResult.artworkUrl600 || '',
         episodeCount: episodeResults.length,
       };
 
@@ -85,9 +85,9 @@ export class ItunesMappers {
 
     const episodes = episodeResults.map((result) => {
       const episodeData: EpisodeData = {
-        id: result.trackId?.toString() || "",
-        title: result.trackName || "",
-        description: result.description || "",
+        id: result.trackId?.toString() || '',
+        title: result.trackName || '',
+        description: result.description || '',
         audioUrl: result.episodeUrl,
         duration: result.trackTimeMillis
           ? Math.floor(result.trackTimeMillis / 1000)
@@ -103,6 +103,6 @@ export class ItunesMappers {
   }
 
   private static extractImageUrl(images: Array<{ label: string }>): string {
-    return images.length > 0 ? images[images.length - 1].label : "";
+    return images.length > 0 ? images[images.length - 1].label : '';
   }
 }

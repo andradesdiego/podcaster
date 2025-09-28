@@ -1,4 +1,4 @@
-import { PodcastId } from "../value-objects/PodcastId";
+import { PodcastId } from '../value-objects/PodcastId';
 export interface EpisodeData {
   id: string;
   title: string;
@@ -37,24 +37,31 @@ export class Episode {
   }
 
   getFormattedDuration(): string {
-    if (!this.duration) return "--:--";
+    if (!this.duration) return '--:--';
 
     const hours = Math.floor(this.duration / 3600);
     const minutes = Math.floor((this.duration % 3600) / 60);
     const seconds = this.duration % 60;
 
     if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  getMinutesForTable(): string {
+    if (!this.duration) return '-';
+
+    const totalMinutes = Math.floor(this.duration / 60);
+    return `${totalMinutes} min`;
   }
 
   getFormattedDate(): string {
-    return this.publishedAt.toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
+    return this.publishedAt.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
     });
   }
 
@@ -86,7 +93,6 @@ export class Episode {
     return this.podcastId;
   }
 
-  // Para compatibilidad con código actual
   toPlainObject(): EpisodeData {
     return {
       id: this.id,

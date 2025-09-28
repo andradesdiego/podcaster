@@ -16,7 +16,7 @@ export interface EpisodeDTO {
   title: string;
   description: string;
   audioUrl?: string;
-  duration?: number;
+  duration?: string;
   publishedAt: string;
   podcastId: string;
 }
