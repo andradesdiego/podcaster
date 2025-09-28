@@ -1,27 +1,58 @@
 import { PodcastId } from "../../domain/value-objects/PodcastId";
 import { PodcastRepository } from "../ports/PodcastRepository";
-import {
-  EpisodeNotFoundError,
-  PodcastNotFoundError,
-} from "../../domain/errors/DomainError";
+import { CacheRepository } from "../ports/CacheRepository";
 import { EpisodeDTO } from "../dto/PodcastDTO";
+import { Episode } from "../../domain/entities/Episode";
+import { config } from "../../config/env";
 
 export class GetEpisodeDetails {
-  constructor(private readonly podcastRepository: PodcastRepository) {}
+  private static readonly CACHE_TTL_HOURS = config.cacheTTLHours;
 
-  async execute(episodeId: string, podcastId: string): Promise<EpisodeDTO> {
+  constructor(
+    private readonly podcastRepository: PodcastRepository,
+    private readonly cacheRepository: CacheRepository,
+  ) {}
+
+  async execute(
+    podcastId: string,
+    episodeId: string,
+  ): Promise<EpisodeDTO | null> {
     const id = PodcastId.create(podcastId);
+    const cacheKey = `episode_${podcastId}_${episodeId}`;
 
-    const podcast = await this.podcastRepository.getPodcastById(id);
-    if (!podcast) {
-      throw new PodcastNotFoundError(id.getValue());
+    const cachedEpisode = this.getCachedEpisode(cacheKey);
+    if (cachedEpisode) {
+      return cachedEpisode;
     }
 
-    const episode = await this.podcastRepository.getEpisodeById(episodeId, id);
+    const episodes = await this.podcastRepository.getEpisodesByPodcastId(id);
+    const episode = episodes.find((ep) => ep.getId() === episodeId);
+
     if (!episode) {
-      throw new EpisodeNotFoundError(episodeId, id.getValue());
+      return null;
     }
 
+    const episodeDTO = this.mapEpisodeToDTO(episode);
+
+    this.cacheRepository.set(
+      cacheKey,
+      episodeDTO,
+      GetEpisodeDetails.CACHE_TTL_HOURS,
+    );
+
+    return episodeDTO;
+  }
+
+  private getCachedEpisode(cacheKey: string): EpisodeDTO | null {
+    if (this.cacheRepository.isExpired(cacheKey)) {
+      this.cacheRepository.clear(cacheKey);
+      return null;
+    }
+
+    return this.cacheRepository.get<EpisodeDTO>(cacheKey);
+  }
+
+  private mapEpisodeToDTO(episode: Episode): EpisodeDTO {
     return {
       id: episode.getId(),
       title: episode.getTitle(),

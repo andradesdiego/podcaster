@@ -2,8 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { PodcastCard } from "../components/PodcastCard";
 import { SearchInput } from "../components/SearchInput";
 import { usePodcast } from "../context/PodcastContext";
-import { PodcastListDTO } from "../application/dto/PodcastDTO";
-import { Container } from "../infrastructure/di/Container";
+import { PodcastListDTO } from "../../application/dto/PodcastDTO";
 import "./HomePage.css";
 import { useState, useMemo } from "react";
 
@@ -12,13 +11,15 @@ export function HomePage() {
   const { podcasts, loading, error } = usePodcast();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Use DDD service for filtering
   const filteredPodcasts = useMemo(() => {
     if (!searchTerm.trim()) return podcasts;
 
-    const container = Container.getInstance();
-    const podcastService = container.getPodcastService();
-    return podcastService.filterPodcasts(podcasts, searchTerm);
+    const search = searchTerm.toLowerCase();
+    return podcasts.filter(
+      (podcast) =>
+        podcast.title.toLowerCase().includes(search) ||
+        podcast.author.toLowerCase().includes(search),
+    );
   }, [podcasts, searchTerm]);
 
   const resultsCount = filteredPodcasts.length;

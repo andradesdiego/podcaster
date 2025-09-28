@@ -27,7 +27,7 @@
   "dir": "ltr",
   "screenshots": [
     {
-      "src": "/screenshot-desktop-1280-800.png",
+      "src": "/screenshot-desktop.png",
       "type": "image/png",
       "sizes": "1280x800",
       "form_factor": "wide",
