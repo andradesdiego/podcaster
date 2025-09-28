@@ -1,28 +1,9 @@
+// src/pages/__tests__/HomePage.test.tsx
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { HomePage } from "../HomePage";
-import { PodcastProvider } from "../../context/PodcastContext";
-import { ApiResponse } from "../../types/podcast";
-
-const mockApiResponse: ApiResponse = {
-  feed: {
-    entry: [
-      {
-        id: { attributes: { "im:id": "123" } },
-        "im:name": { label: "Test Podcast 1" },
-        "im:artist": { label: "Author: Test Author 1" },
-        "im:image": [{ label: "medium.jpg", attributes: { height: "170" } }],
-      },
-      {
-        id: { attributes: { "im:id": "456" } },
-        "im:name": { label: "Test Podcast 2" },
-        "im:artist": { label: "Author: Test Author 2" },
-        "im:image": [{ label: "test2.jpg", attributes: { height: "170" } }],
-      },
-    ],
-  },
-};
+import { PodcastListDTO } from "../../application/dto/PodcastDTO";
 
 const mockNavigate = vi.fn();
 
@@ -34,84 +15,105 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
-const mockLocalStorage = (() => {
-  let store: { [key: string]: string } = {};
-
-  return {
-    getItem: vi.fn((key: string) => store[key] || null),
-    setItem: vi.fn((key: string, value: string) => {
-      store[key] = value;
-    }),
-    clear: vi.fn(() => {
-      store = {};
-    }),
-  };
-})();
-
-Object.defineProperty(window, "localStorage", {
-  value: mockLocalStorage,
-});
-
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
-
-const renderWithRouter = (ui: React.ReactElement) => {
-  return render(
-    <MemoryRouter>
-      <PodcastProvider>{ui}</PodcastProvider>
-    </MemoryRouter>
-  );
+// Mock del Context API
+let mockPodcastContextValue = {
+  podcasts: [] as PodcastListDTO[],
+  loading: false,
+  error: null as string | null,
 };
 
-describe("HomePage with Navigation", () => {
+vi.mock("../../context/PodcastContext", () => ({
+  usePodcast: () => mockPodcastContextValue,
+}));
+
+// Mock del Container para filterPodcasts
+const mockPodcastService = {
+  filterPodcasts: vi.fn(),
+};
+
+vi.mock("../../infrastructure/di/Container", () => ({
+  Container: {
+    getInstance: () => ({
+      getPodcastService: () => mockPodcastService,
+    }),
+  },
+}));
+
+const mockPodcastDTOs: PodcastListDTO[] = [
+  {
+    id: "123",
+    title: "Test Podcast 1",
+    author: "Test Author 1",
+    image: "medium.jpg",
+    description: "Description 1",
+  },
+  {
+    id: "456",
+    title: "Test Podcast 2",
+    author: "Test Author 2",
+    image: "test2.jpg",
+    description: "Description 2",
+  },
+];
+
+const renderWithRouter = (ui: React.ReactElement) => {
+  return render(<MemoryRouter>{ui}</MemoryRouter>);
+};
+
+describe("HomePage with Context API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockLocalStorage.clear();
     mockNavigate.mockClear();
+
+    // Reset context mock to default state
+    mockPodcastContextValue = {
+      podcasts: mockPodcastDTOs,
+      loading: false,
+      error: null,
+    };
+
+    // Mock filterPodcasts implementation
+    mockPodcastService.filterPodcasts.mockImplementation(
+      (podcasts: PodcastListDTO[], search: string) => {
+        if (!search) return podcasts;
+        return podcasts.filter(
+          (p: PodcastListDTO) =>
+            p.title.toLowerCase().includes(search.toLowerCase()) ||
+            p.author.toLowerCase().includes(search.toLowerCase()),
+        );
+      },
+    );
   });
 
   it("renders podcasts and handles navigation", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockApiResponse),
-    });
-
     renderWithRouter(<HomePage />);
 
     await waitFor(() => {
       expect(screen.getByText("TEST PODCAST 1")).toBeInTheDocument();
+      expect(screen.getByText("TEST PODCAST 2")).toBeInTheDocument();
     });
 
-    const firstPodcastCard = screen.getByText("TEST PODCAST 1").closest("li");
+    // Click on first podcast card
+    const firstPodcastCard = screen.getByText("TEST PODCAST 1").closest("div");
     fireEvent.click(firstPodcastCard!);
 
     expect(mockNavigate).toHaveBeenCalledWith("/podcast/123");
   });
 
   it("navigates to correct podcast detail page", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockApiResponse),
-    });
-
     renderWithRouter(<HomePage />);
 
     await waitFor(() => {
       expect(screen.getByText("TEST PODCAST 2")).toBeInTheDocument();
     });
 
-    const secondPodcastCard = screen.getByText("TEST PODCAST 2").closest("li");
+    const secondPodcastCard = screen.getByText("TEST PODCAST 2").closest("div");
     fireEvent.click(secondPodcastCard!);
 
     expect(mockNavigate).toHaveBeenCalledWith("/podcast/456");
   });
 
   it("shows results count correctly", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockApiResponse),
-    });
-
     renderWithRouter(<HomePage />);
 
     await waitFor(() => {
@@ -119,12 +121,7 @@ describe("HomePage with Navigation", () => {
     });
   });
 
-  it("search functionality still works", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockApiResponse),
-    });
-
+  it("search functionality filters podcasts", async () => {
     renderWithRouter(<HomePage />);
 
     await waitFor(() => {
@@ -132,6 +129,91 @@ describe("HomePage with Navigation", () => {
     });
 
     const searchInput = screen.getByPlaceholderText("Filter podcasts...");
+    fireEvent.change(searchInput, { target: { value: "Test Podcast 1" } });
+
+    await waitFor(() => {
+      expect(mockPodcastService.filterPodcasts).toHaveBeenCalledWith(
+        mockPodcastDTOs,
+        "Test Podcast 1",
+      );
+    });
+
     expect(searchInput).not.toBeDisabled();
+  });
+
+  it("search shows no results message when no matches", async () => {
+    // Set up filter to return empty array
+    mockPodcastService.filterPodcasts.mockReturnValue([]);
+
+    renderWithRouter(<HomePage />);
+
+    const searchInput = screen.getByPlaceholderText("Filter podcasts...");
+    fireEvent.change(searchInput, { target: { value: "NonExistent" } });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('No podcasts found for "NonExistent"'),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Show all podcasts")).toBeInTheDocument();
+    });
+
+    // Test clear search button
+    const clearButton = screen.getByText("Show all podcasts");
+    fireEvent.click(clearButton);
+
+    expect(searchInput).toHaveValue("");
+  });
+
+  it("handles loading state from context", () => {
+    mockPodcastContextValue = {
+      podcasts: [],
+      loading: true,
+      error: null,
+    };
+
+    renderWithRouter(<HomePage />);
+
+    expect(screen.getByText("Loading podcasts...")).toBeInTheDocument();
+  });
+
+  it("handles error state from context", () => {
+    mockPodcastContextValue = {
+      podcasts: [],
+      loading: false,
+      error: "Network error",
+    };
+
+    renderWithRouter(<HomePage />);
+
+    expect(
+      screen.getByText("Error loading podcasts: Network error"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows empty state when no podcasts available", () => {
+    mockPodcastContextValue = {
+      podcasts: [],
+      loading: false,
+      error: null,
+    };
+
+    renderWithRouter(<HomePage />);
+
+    expect(screen.getByText("0")).toBeInTheDocument();
+    expect(screen.queryByText("TEST PODCAST 1")).not.toBeInTheDocument();
+  });
+
+  it("filters podcasts by author as well as title", async () => {
+    renderWithRouter(<HomePage />);
+
+    const searchInput = screen.getByPlaceholderText("Filter podcasts...");
+    fireEvent.change(searchInput, { target: { value: "Author 1" } });
+
+    await waitFor(() => {
+      expect(mockPodcastService.filterPodcasts).toHaveBeenCalledWith(
+        mockPodcastDTOs,
+        "Author 1",
+      );
+    });
   });
 });

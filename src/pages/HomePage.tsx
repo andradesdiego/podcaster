@@ -1,23 +1,27 @@
 import { useNavigate } from "react-router-dom";
 import { PodcastCard } from "../components/PodcastCard";
 import { SearchInput } from "../components/SearchInput";
-import { usePodcastFilter } from "../hooks/usePodcastFilter";
 import { usePodcast } from "../context/PodcastContext";
-import { PodcastEntry } from "../types/podcast";
+import { PodcastListDTO } from "../application/dto/PodcastDTO";
+import { Container } from "../infrastructure/di/Container";
 import "./HomePage.css";
+import { useState, useMemo } from "react";
 
 export function HomePage() {
   const navigate = useNavigate();
   const { podcasts, loading, error } = usePodcast();
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const getImage = (pod: PodcastEntry): string => {
-    const imgs = pod?.["im:image"] ?? [];
-    const by170 = imgs.find((x) => x?.attributes?.height === "170");
-    return by170?.label ?? imgs.at(-1)?.label ?? "";
-  };
+  // Use DDD service for filtering
+  const filteredPodcasts = useMemo(() => {
+    if (!searchTerm.trim()) return podcasts;
 
-  const { filteredPodcasts, searchTerm, setSearchTerm, resultsCount } =
-    usePodcastFilter(podcasts);
+    const container = Container.getInstance();
+    const podcastService = container.getPodcastService();
+    return podcastService.filterPodcasts(podcasts, searchTerm);
+  }, [podcasts, searchTerm]);
+
+  const resultsCount = filteredPodcasts.length;
 
   const handlePodcastClick = (podcastId: string) => {
     navigate(`/podcast/${podcastId}`);
@@ -52,22 +56,15 @@ export function HomePage() {
       </div>
 
       <div className="homepage-grid">
-        {filteredPodcasts.map((pod: PodcastEntry) => {
-          const id = pod?.id?.attributes?.["im:id"] ?? crypto.randomUUID();
-          const title = pod?.["im:name"]?.label ?? "";
-          const author = pod?.["im:artist"]?.label ?? "";
-          const img = getImage(pod);
-
-          return (
-            <PodcastCard
-              key={id}
-              imageUrl={img}
-              title={title.toUpperCase()}
-              author={author}
-              onClick={() => handlePodcastClick(id)}
-            />
-          );
-        })}
+        {filteredPodcasts.map((podcast: PodcastListDTO) => (
+          <PodcastCard
+            key={podcast.id}
+            imageUrl={podcast.image}
+            title={podcast.title.toUpperCase()}
+            author={podcast.author}
+            onClick={() => handlePodcastClick(podcast.id)}
+          />
+        ))}
       </div>
 
       {!loading && resultsCount === 0 && searchTerm && (

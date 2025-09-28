@@ -14,7 +14,7 @@
 .search-input__field {
   width: 100%;
   padding: var(--spacing-md);
-  padding-right: calc(var(--spacing-lg) * 2); /* Espacio para botón clear */
+  padding-right: calc(var(--spacing-lg) * 2);
   font-family: var(--font-base);
   font-size: var(--font-size-base);
   border: 2px solid var(--color-border);
@@ -29,7 +29,7 @@
 
 .search-input__field:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
+  box-shadow: 0 0 0 3px var(--color-accent-transparent, rgba(0, 112, 243, 0.1));
 }
 
 .search-input__field:disabled {
@@ -79,7 +79,7 @@
   color: var(--color-text-muted);
 }
 
-/* Responsivo */
+/* Responsive */
 @media (max-width: 640px) {
   .search-input {
     max-width: 100%;

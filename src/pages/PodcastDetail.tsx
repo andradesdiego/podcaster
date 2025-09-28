@@ -1,7 +1,9 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { usePodcast } from "../context/PodcastContext";
-import { PodcastEntry, Episode } from "../types/podcast";
+import { PodcastSidebar } from "../components/PodcastSidebar";
+import { PodcastListDTO, EpisodeDTO } from "../application/dto/PodcastDTO";
+
 import "./PodcastDetail.css";
 
 export function PodcastDetail() {
@@ -10,10 +12,10 @@ export function PodcastDetail() {
     podcasts,
     loading,
     error,
-    episodes,
     episodesLoading,
     episodesError,
     fetchEpisodes,
+    getEpisodes,
   } = usePodcast();
 
   useEffect(() => {
@@ -38,9 +40,7 @@ export function PodcastDetail() {
     );
   }
 
-  const podcast = podcasts.find(
-    (p: PodcastEntry) => p?.id?.attributes?.["im:id"] === id
-  );
+  const podcast = podcasts.find((p: PodcastListDTO) => p.id === id);
 
   if (!podcast) {
     return (
@@ -49,18 +49,10 @@ export function PodcastDetail() {
       </div>
     );
   }
+  const formatDuration = (duration?: number): string => {
+    if (!duration) return "-";
 
-  const getImage = (pod: PodcastEntry): string => {
-    const imgs = pod?.["im:image"] ?? [];
-    const by600 = imgs.find((x) => x?.attributes?.height === "600");
-    const by170 = imgs.find((x) => x?.attributes?.height === "170");
-    return by600?.label || by170?.label || imgs.at(-1)?.label || "";
-  };
-
-  const formatDuration = (timeMillis?: number): string => {
-    if (!timeMillis) return "-";
-
-    const totalSeconds = Math.floor(timeMillis / 1000);
+    const totalSeconds = Math.floor(duration / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
@@ -86,39 +78,14 @@ export function PodcastDetail() {
     }
   };
 
-  const title = podcast?.["im:name"]?.label || "";
-  const author = podcast?.["im:artist"]?.label || "";
-  const image = getImage(podcast);
-
-  const podcastEpisodes = episodes[id || ""] || [];
+  // Use new DDD Context API
+  const podcastEpisodes = getEpisodes(id || "");
   const isLoadingEpisodes = episodesLoading[id || ""] || false;
   const episodeError = episodesError[id || ""];
 
   return (
     <div className="podcast-detail">
-      <div className="podcast-detail__sidebar">
-        <div className="podcast-detail__image-container">
-          <Link to="/">
-            <img
-              src={image}
-              alt={`${title} podcast cover`}
-              className="podcast-detail__image"
-            />
-          </Link>
-        </div>
-        <div className="podcast-detail__info">
-          <Link to="/" className="podcast-detail__title-link">
-            <h1 className="podcast-detail__title">{title}</h1>
-          </Link>
-          <Link to="/" className="podcast-detail__author-link">
-            <p className="podcast-detail__author">by {author}</p>
-          </Link>
-          <div className="podcast-detail__description">
-            <p>Description: {title}</p>
-          </div>
-        </div>
-      </div>
-
+      <PodcastSidebar podcast={podcast} />
       <div className="podcast-detail__main">
         <div className="podcast-detail__episodes-header">
           <h2>Episodes ({podcastEpisodes.length})</h2>
@@ -147,21 +114,21 @@ export function PodcastDetail() {
                 </tr>
               </thead>
               <tbody>
-                {podcastEpisodes.map((episode: Episode) => (
-                  <tr key={episode.trackId} className="episode-row">
+                {podcastEpisodes.map((episode: EpisodeDTO) => (
+                  <tr key={episode.id} className="episode-row">
                     <td className="episode-title">
                       <Link
-                        to={`/podcast/${id}/episode/${episode.trackId}`}
+                        to={`/podcast/${id}/episode/${episode.id}`}
                         className="episode-title-link"
                       >
-                        {episode.trackName}
+                        {episode.title}
                       </Link>
                     </td>
                     <td className="episode-date">
-                      {formatDate(episode.releaseDate)}
+                      {formatDate(episode.publishedAt)}
                     </td>
                     <td className="episode-duration">
-                      {formatDuration(episode.trackTimeMillis)}
+                      {formatDuration(episode.duration)}
                     </td>
                   </tr>
                 ))}

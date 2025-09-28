@@ -1,21 +1,37 @@
 :root {
-  /* colores */
+  /* Colors - Sistema unificado */
+  --color-primary: #007297;
+  --color-primary-dark: #005a75;
+  --color-accent: #0070f3;
+  --color-accent-transparent: rgba(0, 112, 243, 0.1);
   --color-bg: #ffffff;
   --color-bg-alt: #f9f9f9;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-hover: #f8f9fa;
   --color-text: #111111;
   --color-text-muted: #666666;
+  --color-text-secondary: #555555;
   --color-border: #dddddd;
-  --color-accent: #0070f3;
+  --color-error: #dc3545;
+  --color-error-bg: #fee;
+  --color-error-border: #fcc;
 
-  /* tipografía */
+  /* Typography */
   --font-base: system-ui, sans-serif;
   --font-size-base: 16px;
   --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
   --font-size-lg: 1.125rem;
 
-  /* layout */
+  /* Layout */
   --radius-card: 0.2rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
   --spacing-lg: 2rem;
+
+  /* Shadows - Sistema unificado */
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-image: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-header: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
