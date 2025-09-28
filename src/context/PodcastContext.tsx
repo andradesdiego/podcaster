@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useContext,
@@ -58,7 +59,7 @@ const initialState: PodcastState = {
 
 function podcastReducer(
   state: PodcastState,
-  action: PodcastAction
+  action: PodcastAction,
 ): PodcastState {
   switch (action.type) {
     case "FETCH_START":
@@ -189,7 +190,7 @@ export function PodcastProvider({ children }: PodcastProviderProps) {
     (podcastId: string): EpisodeDTO[] => {
       return state.episodeDetails[podcastId]?.episodes || [];
     },
-    [state.episodeDetails]
+    [state.episodeDetails],
   );
 
   useEffect(() => {

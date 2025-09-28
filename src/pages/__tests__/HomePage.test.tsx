@@ -15,8 +15,19 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
+// Mock del Context API
+let mockPodcastContextValue = {
+  podcasts: [] as PodcastListDTO[],
+  loading: false,
+  error: null as string | null,
+};
+
+vi.mock("../../context/PodcastContext", () => ({
+  usePodcast: () => mockPodcastContextValue,
+}));
+
+// Mock del Container para filterPodcasts
 const mockPodcastService = {
-  getTopPodcasts: vi.fn(),
   filterPodcasts: vi.fn(),
 };
 
@@ -28,18 +39,20 @@ vi.mock("../../infrastructure/di/Container", () => ({
   },
 }));
 
-const mockPodcastDTOs = [
+const mockPodcastDTOs: PodcastListDTO[] = [
   {
     id: "123",
     title: "Test Podcast 1",
     author: "Test Author 1",
     image: "medium.jpg",
+    description: "Description 1",
   },
   {
     id: "456",
     title: "Test Podcast 2",
     author: "Test Author 2",
     image: "test2.jpg",
+    description: "Description 2",
   },
 ];
 
@@ -47,19 +60,28 @@ const renderWithRouter = (ui: React.ReactElement) => {
   return render(<MemoryRouter>{ui}</MemoryRouter>);
 };
 
-describe("HomePage with Navigation", () => {
+describe("HomePage with Context API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockNavigate.mockClear();
 
-    mockPodcastService.getTopPodcasts.mockResolvedValue(mockPodcastDTOs);
+    // Reset context mock to default state
+    mockPodcastContextValue = {
+      podcasts: mockPodcastDTOs,
+      loading: false,
+      error: null,
+    };
+
+    // Mock filterPodcasts implementation
     mockPodcastService.filterPodcasts.mockImplementation(
-      (podcasts: PodcastListDTO[], search: string) =>
-        search
-          ? podcasts.filter((p: PodcastListDTO) =>
-              p.title.toLowerCase().includes(search.toLowerCase())
-            )
-          : podcasts
+      (podcasts: PodcastListDTO[], search: string) => {
+        if (!search) return podcasts;
+        return podcasts.filter(
+          (p: PodcastListDTO) =>
+            p.title.toLowerCase().includes(search.toLowerCase()) ||
+            p.author.toLowerCase().includes(search.toLowerCase()),
+        );
+      },
     );
   });
 
@@ -71,9 +93,8 @@ describe("HomePage with Navigation", () => {
       expect(screen.getByText("TEST PODCAST 2")).toBeInTheDocument();
     });
 
-    expect(mockPodcastService.getTopPodcasts).toHaveBeenCalledTimes(1);
-
-    const firstPodcastCard = screen.getByText("TEST PODCAST 1").closest("li");
+    // Click on first podcast card
+    const firstPodcastCard = screen.getByText("TEST PODCAST 1").closest("div");
     fireEvent.click(firstPodcastCard!);
 
     expect(mockNavigate).toHaveBeenCalledWith("/podcast/123");
@@ -86,7 +107,7 @@ describe("HomePage with Navigation", () => {
       expect(screen.getByText("TEST PODCAST 2")).toBeInTheDocument();
     });
 
-    const secondPodcastCard = screen.getByText("TEST PODCAST 2").closest("li");
+    const secondPodcastCard = screen.getByText("TEST PODCAST 2").closest("div");
     fireEvent.click(secondPodcastCard!);
 
     expect(mockNavigate).toHaveBeenCalledWith("/podcast/456");
@@ -100,7 +121,7 @@ describe("HomePage with Navigation", () => {
     });
   });
 
-  it("search functionality still works", async () => {
+  it("search functionality filters podcasts", async () => {
     renderWithRouter(<HomePage />);
 
     await waitFor(() => {
@@ -113,40 +134,86 @@ describe("HomePage with Navigation", () => {
     await waitFor(() => {
       expect(mockPodcastService.filterPodcasts).toHaveBeenCalledWith(
         mockPodcastDTOs,
-        "Test Podcast 1"
+        "Test Podcast 1",
       );
     });
 
     expect(searchInput).not.toBeDisabled();
   });
 
-  it("handles loading state", () => {
-    mockPodcastService.getTopPodcasts.mockImplementation(
-      () => new Promise(() => {})
-    );
+  it("search shows no results message when no matches", async () => {
+    // Set up filter to return empty array
+    mockPodcastService.filterPodcasts.mockReturnValue([]);
+
+    renderWithRouter(<HomePage />);
+
+    const searchInput = screen.getByPlaceholderText("Filter podcasts...");
+    fireEvent.change(searchInput, { target: { value: "NonExistent" } });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('No podcasts found for "NonExistent"'),
+      ).toBeInTheDocument();
+      expect(screen.getByText("Show all podcasts")).toBeInTheDocument();
+    });
+
+    // Test clear search button
+    const clearButton = screen.getByText("Show all podcasts");
+    fireEvent.click(clearButton);
+
+    expect(searchInput).toHaveValue("");
+  });
+
+  it("handles loading state from context", () => {
+    mockPodcastContextValue = {
+      podcasts: [],
+      loading: true,
+      error: null,
+    };
 
     renderWithRouter(<HomePage />);
 
     expect(screen.getByText("Loading podcasts...")).toBeInTheDocument();
   });
 
-  it("handles error state", async () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
-    mockPodcastService.getTopPodcasts.mockRejectedValue(
-      new Error("Network error")
-    );
+  it("handles error state from context", () => {
+    mockPodcastContextValue = {
+      podcasts: [],
+      loading: false,
+      error: "Network error",
+    };
 
     renderWithRouter(<HomePage />);
 
+    expect(
+      screen.getByText("Error loading podcasts: Network error"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows empty state when no podcasts available", () => {
+    mockPodcastContextValue = {
+      podcasts: [],
+      loading: false,
+      error: null,
+    };
+
+    renderWithRouter(<HomePage />);
+
+    expect(screen.getByText("0")).toBeInTheDocument();
+    expect(screen.queryByText("TEST PODCAST 1")).not.toBeInTheDocument();
+  });
+
+  it("filters podcasts by author as well as title", async () => {
+    renderWithRouter(<HomePage />);
+
+    const searchInput = screen.getByPlaceholderText("Filter podcasts...");
+    fireEvent.change(searchInput, { target: { value: "Author 1" } });
+
     await waitFor(() => {
-      expect(consoleError).toHaveBeenCalledWith(
-        "Error loading podcasts:",
-        expect.any(Error)
+      expect(mockPodcastService.filterPodcasts).toHaveBeenCalledWith(
+        mockPodcastDTOs,
+        "Author 1",
       );
     });
-
-    consoleError.mockRestore();
   });
 });
