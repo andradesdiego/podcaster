@@ -30,8 +30,8 @@
   --spacing-lg: 2rem;
 
   /* Shadows - Sistema unificado */
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 6px 8px rgba(0, 0, 0, 0.1);
   --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
-  --shadow-image: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-image: 0 6px 12px rgba(0, 0, 0, 0.15);
   --shadow-header: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

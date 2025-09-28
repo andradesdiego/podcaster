@@ -31,15 +31,15 @@
 }
 
 .homepage-results-count {
-  background: var(--color-accent);
+  background: var(--color-primary);
   color: white;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm);
   border-radius: calc(var(--radius-card) * 1.2);
-  font-size: calc(var(--font-size-sm) * 0.9);
-  font-weight: 600;
+  font-size: calc(var(--font-size-md) * 0.9);
+  font-weight: 800;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   min-width: 50px;
   flex-shrink: 0;

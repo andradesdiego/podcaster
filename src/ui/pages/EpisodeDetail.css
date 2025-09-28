@@ -97,6 +97,7 @@
   margin-bottom: calc(var(--spacing-lg));
   line-height: 1.6;
   color: var(--color-text-secondary);
+  font-style: italic;
 }
 
 .episode-detail__episode-description h1,
@@ -122,10 +123,6 @@
 
 .episode-detail__player {
   margin-top: calc(var(--spacing-lg));
-  padding: var(--spacing-lg);
-  background: var(--color-bg-alt);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--color-border);
 }
 
 .episode-detail__audio {
