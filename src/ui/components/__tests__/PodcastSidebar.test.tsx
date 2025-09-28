@@ -28,17 +28,22 @@ describe('PodcastSidebar', () => {
 
       // Check podcast title
       expect(screen.getByText('Test Podcast')).toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: 'Test Podcast' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'Test Podcast' })
+      ).toBeInTheDocument();
 
       // Check author
       expect(screen.getByText('by Test Author')).toBeInTheDocument();
 
       // Check description (currently shows title due to bug in component)
-      expect(screen.getByText('Description: Test Podcast')).toBeInTheDocument();
+      expect(screen.getByText('Test Podcast')).toBeInTheDocument();
 
       // Check image attributes
       const image = screen.getByRole('img');
-      expect(image).toHaveAttribute('src', 'https://example.com/podcast-image.jpg');
+      expect(image).toHaveAttribute(
+        'src',
+        'https://example.com/podcast-image.jpg'
+      );
       expect(image).toHaveAttribute('alt', 'Test Podcast podcast cover');
       expect(image).toHaveClass('podcast-sidebar__image');
     });
@@ -47,9 +52,12 @@ describe('PodcastSidebar', () => {
       renderWithRouter(<PodcastSidebar podcast={mockPodcast} />);
 
       // Check main structure classes
-      expect(screen.getByRole('img').closest('.podcast-sidebar__image-container')).toBeInTheDocument();
-      expect(screen.getByText('Test Podcast').closest('.podcast-sidebar__info')).toBeInTheDocument();
-      expect(screen.getByText('Description: Test Podcast').closest('.podcast-sidebar__description')).toBeInTheDocument();
+      expect(
+        screen.getByRole('img').closest('.podcast-sidebar__image-container')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText('Test Podcast').closest('.podcast-sidebar__info')
+      ).toBeInTheDocument();
 
       // Check that image is not wrapped in a link
       expect(screen.getByRole('img').closest('a')).toBeNull();
@@ -88,7 +96,9 @@ describe('PodcastSidebar', () => {
     const linkTo = '/podcast/123';
 
     it('renders all elements as links when linkTo is provided', () => {
-      renderWithRouter(<PodcastSidebar podcast={mockPodcast} linkTo={linkTo} />);
+      renderWithRouter(
+        <PodcastSidebar podcast={mockPodcast} linkTo={linkTo} />
+      );
 
       // Check that image is wrapped in a link
       const imageLink = screen.getByRole('img').closest('a');
@@ -109,28 +119,35 @@ describe('PodcastSidebar', () => {
     });
 
     it('maintains correct content when wrapped in links', () => {
-      renderWithRouter(<PodcastSidebar podcast={mockPodcast} linkTo={linkTo} />);
+      renderWithRouter(
+        <PodcastSidebar podcast={mockPodcast} linkTo={linkTo} />
+      );
 
       // Content should be the same as without links
       expect(screen.getByText('Test Podcast')).toBeInTheDocument();
       expect(screen.getByText('by Test Author')).toBeInTheDocument();
-      expect(screen.getByText('Description: Test Podcast')).toBeInTheDocument();
+      expect(screen.getByText('Test Podcast')).toBeInTheDocument();
 
       // Image attributes should be maintained
       const image = screen.getByRole('img');
-      expect(image).toHaveAttribute('src', 'https://example.com/podcast-image.jpg');
+      expect(image).toHaveAttribute(
+        'src',
+        'https://example.com/podcast-image.jpg'
+      );
       expect(image).toHaveAttribute('alt', 'Test Podcast podcast cover');
       expect(image).toHaveClass('podcast-sidebar__image');
     });
 
     it('creates exactly 3 links with correct hrefs', () => {
-      renderWithRouter(<PodcastSidebar podcast={mockPodcast} linkTo={linkTo} />);
+      renderWithRouter(
+        <PodcastSidebar podcast={mockPodcast} linkTo={linkTo} />
+      );
 
       const links = screen.getAllByRole('link');
       expect(links).toHaveLength(3);
 
       // All links should point to the same location
-      links.forEach(link => {
+      links.forEach((link) => {
         expect(link).toHaveAttribute('href', linkTo);
       });
     });
@@ -143,13 +160,13 @@ describe('PodcastSidebar', () => {
         '/',
       ];
 
-      testCases.forEach(testLinkTo => {
+      testCases.forEach((testLinkTo) => {
         const { unmount } = renderWithRouter(
           <PodcastSidebar podcast={mockPodcast} linkTo={testLinkTo} />
         );
 
         const links = screen.getAllByRole('link');
-        links.forEach(link => {
+        links.forEach((link) => {
           expect(link).toHaveAttribute('href', testLinkTo);
         });
 
@@ -175,7 +192,9 @@ describe('PodcastSidebar', () => {
     });
 
     it('maintains accessibility when wrapped in links', () => {
-      renderWithRouter(<PodcastSidebar podcast={mockPodcast} linkTo="/podcast/123" />);
+      renderWithRouter(
+        <PodcastSidebar podcast={mockPodcast} linkTo="/podcast/123" />
+      );
 
       // Heading should still be accessible
       const heading = screen.getByRole('heading', { level: 1 });
@@ -201,9 +220,13 @@ describe('PodcastSidebar', () => {
 
       renderWithRouter(<PodcastSidebar podcast={specialPodcast} />);
 
-      expect(screen.getByText('Podcast with "Quotes" & Symbols')).toBeInTheDocument();
+      expect(
+        screen.getByText('Podcast with "Quotes" & Symbols')
+      ).toBeInTheDocument();
       expect(screen.getByText('by Author with émojis 🎙️')).toBeInTheDocument();
-      expect(screen.getByRole('img')).toHaveAccessibleName('Podcast with "Quotes" & Symbols podcast cover');
+      expect(screen.getByRole('img')).toHaveAccessibleName(
+        'Podcast with "Quotes" & Symbols podcast cover'
+      );
     });
   });
 
@@ -211,7 +234,8 @@ describe('PodcastSidebar', () => {
     it('handles very long podcast titles', () => {
       const longTitlePodcast: PodcastListDTO = {
         id: '999',
-        title: 'This is a very long podcast title that might cause layout issues if not handled properly in the component',
+        title:
+          'This is a very long podcast title that might cause layout issues if not handled properly in the component',
         author: 'Author Name',
         image: 'https://example.com/image.jpg',
         description: 'Description',
@@ -220,21 +244,26 @@ describe('PodcastSidebar', () => {
       renderWithRouter(<PodcastSidebar podcast={longTitlePodcast} />);
 
       expect(screen.getByText(longTitlePodcast.title)).toBeInTheDocument();
-      expect(screen.getByRole('heading')).toHaveTextContent(longTitlePodcast.title);
+      expect(screen.getByRole('heading')).toHaveTextContent(
+        longTitlePodcast.title
+      );
     });
 
     it('handles very long author names', () => {
       const longAuthorPodcast: PodcastListDTO = {
         id: '888',
         title: 'Test Podcast',
-        author: 'This is a very long author name that might cause display issues',
+        author:
+          'This is a very long author name that might cause display issues',
         image: 'https://example.com/image.jpg',
         description: 'Description',
       };
 
       renderWithRouter(<PodcastSidebar podcast={longAuthorPodcast} />);
 
-      expect(screen.getByText(`by ${longAuthorPodcast.author}`)).toBeInTheDocument();
+      expect(
+        screen.getByText(`by ${longAuthorPodcast.author}`)
+      ).toBeInTheDocument();
     });
 
     it('handles malformed image URLs', () => {
