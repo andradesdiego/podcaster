@@ -1,19 +1,17 @@
-// Update PodcastSidebar.tsx:
-
-import { Link } from "react-router-dom";
-import { PodcastListDTO } from "../../application/dto/PodcastDTO";
-import "./PodcastSidebar.css";
+import { Link } from 'react-router-dom';
+import { PodcastListDTO } from '../../application/dto/PodcastDTO';
+import './PodcastSidebar.css';
 
 interface PodcastSidebarProps {
-  podcast: PodcastListDTO; // Changed from PodcastEntry
+  podcast: PodcastListDTO;
   linkTo?: string;
 }
 
 export function PodcastSidebar({ podcast, linkTo }: PodcastSidebarProps) {
-  // Simplified - DTO already has clean properties
   const title = podcast.title;
   const author = podcast.author;
   const image = podcast.image;
+  const description = podcast.description;
 
   const ImageComponent = linkTo ? (
     <Link to={linkTo}>
@@ -54,7 +52,8 @@ export function PodcastSidebar({ podcast, linkTo }: PodcastSidebarProps) {
         {TitleComponent}
         {AuthorComponent}
         <div className="podcast-sidebar__description">
-          <p>Description: {title}</p>
+          <p className="podcast-sidebar__description-title">Description:</p>
+          <p>{description}</p>
         </div>
       </div>
     </div>
