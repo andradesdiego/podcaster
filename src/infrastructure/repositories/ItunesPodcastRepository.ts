@@ -15,7 +15,7 @@ export class ItunesPodcastRepository implements PodcastRepository {
 
   async getTopPodcasts(): Promise<Podcast[]> {
     const response = await this.httpClient.get<ItunesTopPodcastsResponse>(
-      config.topPodcastsUrl
+      config.topPodcastsUrl,
     );
     return ItunesMappers.mapTopPodcastsResponse(response);
   }
@@ -32,18 +32,17 @@ export class ItunesPodcastRepository implements PodcastRepository {
 
   async getEpisodeById(
     episodeId: string,
-    podcastId: PodcastId
+    podcastId: PodcastId,
   ): Promise<Episode | null> {
     const episodes = await this.getEpisodesByPodcastId(podcastId);
     return episodes.find((episode) => episode.getId() === episodeId) || null;
   }
 
   private async fetchPodcastWithEpisodes(podcastId: PodcastId) {
-    const url = `${config.lookupUrl}?id=${podcastId.getValue()}`;
+    const url = `${config.lookupUrl}?id=${podcastId.getValue()}&media=podcast&entity=podcastEpisode&limit=20`;
 
     const response = await this.httpClient.get<ItunesLookupResponse>(url);
 
-    // Ambos entornos devuelven formato iTunes directo
     return ItunesMappers.mapLookupResponse(response, podcastId.getValue());
   }
 }

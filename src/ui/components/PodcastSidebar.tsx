@@ -1,7 +1,7 @@
 // Update PodcastSidebar.tsx:
 
 import { Link } from "react-router-dom";
-import { PodcastListDTO } from "../application/dto/PodcastDTO";
+import { PodcastListDTO } from "../../application/dto/PodcastDTO";
 import "./PodcastSidebar.css";
 
 interface PodcastSidebarProps {
