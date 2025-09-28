@@ -46,15 +46,26 @@ export function PodcastDetail() {
   };
 
   const formatDate = (dateString: string): string => {
+    if (!dateString || dateString.trim() === '') {
+      return '-';
+    }
+
     try {
       const date = new Date(dateString);
+
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return '-';
+      }
+
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
       });
-    } catch {
-      return dateString;
+    } catch (error) {
+      console.warn('Error parsing date:', dateString, error);
+      return '-';
     }
   };
 
