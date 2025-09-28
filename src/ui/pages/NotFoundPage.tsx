@@ -1,10 +1,23 @@
-import React from "react";
+import { Link } from 'react-router-dom';
 
-const NotFoundPage: React.FC = () => (
-  <div style={{ textAlign: "center", marginTop: "10vh" }}>
-    <h1>404 - Page Not Found</h1>
-    <p>The page you are looking for does not exist.</p>
-  </div>
-);
-
-export default NotFoundPage;
+export function NotFoundPage() {
+  return (
+    <div style={{ textAlign: 'center', marginTop: '10vh' }}>
+      <h1>Page Not Found</h1>
+      <div style={{ marginTop: '2rem' }}>
+        <Link
+          to="/"
+          style={{
+            padding: '0.5rem 1rem',
+            backgroundColor: '#6c757d',
+            color: 'white',
+            textDecoration: 'none',
+            borderRadius: '4px',
+          }}
+        >
+          Go Home
+        </Link>
+      </div>
+    </div>
+  );
+}
