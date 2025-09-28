@@ -1,6 +1,6 @@
 # Podcaster
 
-A modern podcast application demonstrating Domain-Driven Design architecture with React and TypeScript. Browse the top 100 music podcasts from iTunes, view detailed episode lists, and play content with HTML5 audio.
+A modern podcast application demonstrating Clean Architecture with React and TypeScript. Browse the top 100 music podcasts from iTunes, view detailed episode lists, and play content with HTML5 audio.
 
 ## Prerequisites
 
@@ -26,6 +26,7 @@ npm run preview
 
 # Testing
 npm run test
+npm run test:run
 npm run test:coverage
 
 # Code quality
@@ -34,7 +35,7 @@ npm run lint
 
 ## Features
 
-✅ **Core Application:**
+### Core Application
 
 - Browse top 100 podcasts with responsive grid layout
 - Real-time search by title and author with instant filtering
@@ -43,25 +44,23 @@ npm run lint
 - Clean URL routing without hash navigation
 - Complete responsive design for mobile, tablet, and desktop
 
-✅ **Progressive Web App (PWA):**
+### Progressive Web App (PWA)
 
 - Web App Manifest with native app experience
 - Service Worker with intelligent caching strategy
 - Offline support for core application functionality
 - Install as native app on desktop and mobile
-- App-like standalone display mode
-- Fast subsequent loads via cached assets
 
-✅ **DDD Architecture:**
+### Clean Architecture
 
 - Domain layer with entities, value objects, and domain errors
 - Application layer with use cases, ports, and DTOs
-- Infrastructure layer with repositories, HTTP client, and DI container
-- Context API + DDD Services hybrid architecture
-- Comprehensive test coverage with passing tests
+- Infrastructure layer with repositories, HTTP client, and mappers
+- UI layer with Context API for state management
+- Comprehensive test coverage (134 tests passing)
 - TypeScript-first implementation with strict typing
 
-✅ **Production Ready:**
+### Production Ready
 
 - Live deployment on Vercel with automated CI/CD
 - Custom API routes for CORS handling (/api/episodes.js)
@@ -74,9 +73,9 @@ npm run lint
 - **Frontend:** React 18.3.1 + TypeScript 5.9.2
 - **Build Tool:** Vite 5.4.10 with proxy configuration
 - **Routing:** React Router Dom (clean URLs)
-- **Testing:** Vitest + Testing Library
+- **Testing:** Vitest 1.0.4 + Testing Library
 - **Styling:** Custom CSS + CSS Variables
-- **State:** Context API + DDD Services
+- **State:** Context API + Clean Architecture Services
 - **Cache:** localStorage with 24h TTL
 - **API:** iTunes RSS + iTunes Lookup
 - **Quality:** ESLint + Prettier + strict TypeScript
@@ -84,16 +83,16 @@ npm run lint
 
 ## Architecture
 
-### DDD Implementation
+### Hybrid Clean Architecture + Context API
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   UI Layer      │    │  Application    │    │ Infrastructure  │
 │                 │    │     Layer       │    │     Layer       │
-│ Components      │◄──►│                 │◄──►│                 │
-│ Context API     │    │ Use Cases       │    │ Repositories    │
-│ Custom Hooks    │    │ Services        │    │ HTTP Clients    │
-│                 │    │ DTOs            │    │ Cache           │
+│ Context API     │◄──►│                 │◄──►│                 │
+│ Components      │    │ Use Cases       │    │ Repositories    │
+│ Pages           │    │ DTOs            │    │ HTTP Clients    │
+│ Hooks           │    │ Ports           │    │ Cache           │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                               ▲
                               │
@@ -109,49 +108,46 @@ npm run lint
 ### Data Flow
 
 ```
-iTunes API → Mapper → Domain Entity → Use Case → DTO → Context → UI
+iTunes API → Infrastructure → Domain Entities → Application DTOs → Context API → UI Components
 ```
 
-### CORS Solution
+### Key Architectural Decisions
 
-**Development:** Frontend → Vite Proxy (/lookup) → iTunes API
-**Production:** Frontend → Vercel API Route (/api/episodes) → iTunes API
+**Hybrid Approach:** Combines Context API (React requirement) with Clean Architecture principles for optimal balance between simplicity and maintainability.
 
-### PWA Architecture
+**Simplified DI:** Direct dependency injection in `src/app/di.ts` instead of complex container pattern.
 
-**Service Worker Strategy:**
+**Rich Domain:** Domain entities contain business logic (duration formatting, image selection) rather than anemic models.
 
-- Static file caching on install (app shell)
-- Network-first with cache fallback for dynamic content
-- Automatic cache versioning and cleanup
-- Offline support for core application features
+**Cache Strategy:** 24-hour TTL at Use Case level storing DTOs for optimal performance and serialization.
 
-**Caching Layers:**
+## Project Structure
 
 ```
-Service Worker Cache ← → Application Cache (localStorage)
-        ↓                        ↓
-   Static Assets           Podcast Data (24h TTL)
-   (HTML, CSS, JS)         (API responses)
+src/
+├── app/                    # Application configuration
+│   ├── di.ts              # Dependency injection setup
+│   └── router.tsx         # Application routing
+├── domain/                # Domain layer (entities, value objects)
+│   ├── entities/
+│   ├── value-objects/
+│   └── errors/
+├── application/           # Application layer (use cases, DTOs)
+│   ├── use-cases/
+│   ├── dto/
+│   └── ports/
+├── infrastructure/        # Infrastructure layer (repositories, HTTP)
+│   ├── repositories/
+│   ├── http/
+│   ├── cache/
+│   └── mappers/
+└── ui/                    # UI layer (components, pages, context)
+    ├── components/
+    ├── pages/
+    ├── context/
+    ├── hooks/
+    └── styles/
 ```
-
-## Key Technical Decisions
-
-### 1. Hybrid Context API + DDD
-
-Maintains React Context API (per requirements) while adding DDD business logic layer for scalability.
-
-### 2. Data Transformation Pipeline
-
-Complete transformation: iTunes API → Domain Entities → Clean DTOs → UI Components
-
-### 3. Cache Strategy
-
-24-hour TTL at Use Case level storing DTOs for optimal performance and serialization.
-
-### 4. Component Architecture
-
-Modular, single-responsibility components with clean prop interfaces and reusable design.
 
 ## Environment Configuration
 
@@ -181,7 +177,7 @@ VITE_EPISODE_LIMIT=20
 - ✅ 24h intelligent caching
 - ✅ Responsive design
 - ✅ Build tools (dev/production modes)
-- ✅ Comprehensive testing
+- ✅ Comprehensive testing (134 tests)
 - ✅ Custom hooks
 - ✅ CSS variables system
 - ✅ PWA capabilities
@@ -197,6 +193,17 @@ VITE_EPISODE_LIMIT=20
 - ✅ Loading states
 - ✅ Error handling
 
+## Testing Strategy
+
+Comprehensive test suite with 134 tests covering:
+
+- **Domain Layer:** Entity behavior, value object validation, domain rules
+- **Application Layer:** Use case orchestration, DTO mapping, cache behavior
+- **Infrastructure Layer:** Repository implementations, HTTP clients, mappers
+- **UI Layer:** Component rendering, context behavior, user interactions
+
+Testing tools: Vitest 1.0.4, Testing Library, jsdom for browser simulation.
+
 ## Development Workflow
 
 ### Git Strategy
@@ -211,6 +218,13 @@ VITE_EPISODE_LIMIT=20
 - Prettier: Consistent formatting
 - TypeScript: Complete type coverage
 - Vitest: Unit and integration testing
+
+## Performance
+
+- **Cache Benefits:** 24-hour localStorage caching reduces API calls
+- **PWA Features:** Service Worker provides offline access and faster loads
+- **Bundle Optimization:** Vite tree shaking and code splitting
+- **Network Efficiency:** Intelligent request caching with TTL
 
 ## Deployment
 
@@ -231,11 +245,16 @@ npm run build   # TypeScript + Vite production build
 npm run preview # Preview production build locally
 ```
 
-## Performance
+## Architecture Benefits
 
-- **PWA Benefits:** 40-60% faster subsequent loads
-- **Caching:** Offline access to cached podcasts
-- **Bundle Optimization:** Tree shaking and code splitting
-- **Network Efficiency:** Intelligent API request caching
+This hybrid approach demonstrates how to implement Clean Architecture principles within React ecosystem constraints:
 
-This architecture demonstrates enterprise-level design patterns while efficiently solving immediate requirements. The hybrid approach balances technical constraints with scalable foundations, providing both PWA capabilities and clean DDD architecture for future growth.
+**Maintainability:** Clear separation of concerns with domain logic isolated from framework details.
+
+**Testability:** Each layer tested independently with appropriate mocking strategies.
+
+**Scalability:** Domain-driven design allows easy extension of business rules and features.
+
+**React Integration:** Context API satisfies framework requirements while maintaining architectural integrity.
+
+The result is a codebase that balances architectural purity with pragmatic React development, suitable for both educational purposes and production applications.
