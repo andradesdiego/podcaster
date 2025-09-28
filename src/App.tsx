@@ -2,7 +2,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { PodcastProvider } from './ui/context/PodcastContext';
 import { Layout } from './ui/components/Layout';
 import { AppRouter } from './app/router';
-import './App.css';
 
 function App() {
   return (
