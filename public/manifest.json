@@ -1,0 +1,44 @@
+{
+  "name": "Podcaster - Music Podcast Player",
+  "short_name": "Podcaster",
+  "description": "Browse and listen to the top 100 music podcasts from iTunes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007297",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/itunes.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/itunes.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["music", "entertainment"],
+  "lang": "en",
+  "dir": "ltr",
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop-1280-800.png",
+      "type": "image/png",
+      "sizes": "1280x800",
+      "form_factor": "wide",
+      "label": "Desktop view showing podcast grid"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "type": "image/png",
+      "sizes": "640x1130",
+      "form_factor": "narrow",
+      "label": "Mobile responsive layout"
+    }
+  ]
+}

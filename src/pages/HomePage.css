@@ -59,8 +59,15 @@
 @media (max-width: 640px) {
   .homepage-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-md);
-    row-gap: calc(var(--spacing-md) + 65px);
+    gap: var(--spacing-sm); /* Cambiar de --spacing-md a --spacing-sm */
+    row-gap: calc(var(--spacing-sm) + 65px);
+    padding-left: 0; /* Asegurar sin padding lateral extra */
+    padding-right: 0;
+  }
+
+  .homepage {
+    width: 100%;
+    overflow-x: hidden; /* Forzar que no haga scroll */
   }
 }
 
