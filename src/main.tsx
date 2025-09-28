@@ -1,20 +1,20 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import "./styles/variables.css";
-import "./styles/base.css";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './ui/styles/variables.css';
+import './ui/styles/base.css';
 
-import App from "./App";
+import App from './App';
 
-createRoot(document.getElementById("root")!).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
-  </StrictMode>,
+  </StrictMode>
 );
 //no console logs in promise
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register("/sw.js")
+      .register('/sw.js')
       .then(() => {})
       .catch(() => {});
   });

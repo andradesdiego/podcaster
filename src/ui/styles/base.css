@@ -10,14 +10,18 @@
 html,
 body {
   height: 100%;
-}
-
-body {
   font-family: var(--font-base);
   font-size: var(--font-size-base);
   line-height: 1.5;
   background-color: var(--color-bg);
   color: var(--color-text);
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 img {
