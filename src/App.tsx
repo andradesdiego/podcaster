@@ -1,10 +1,10 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Layout } from "./ui/components/Layout";
-import { HomePage } from "./ui/pages/Home";
-import { PodcastDetail } from "./ui/pages/Podcast";
-import { EpisodeDetail } from "./ui/pages/Episode";
-import { PodcastProvider } from "./ui/context/PodcastContext";
-import "./App.css";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Layout } from './ui/components/Layout';
+import { HomePage } from './ui/pages/Home';
+import { PodcastDetail } from './ui/pages/PodcastDetail';
+import { EpisodeDetail } from './ui/pages/EpisodeDetail';
+import { PodcastProvider } from './ui/context/PodcastContext';
+import './App.css';
 
 function App() {
   return (

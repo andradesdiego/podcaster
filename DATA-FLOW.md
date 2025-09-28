@@ -1,4 +1,4 @@
-# Data Flow Architecture: iTunes API → HomePage
+# Data Flow Architecture: iTunes API → UI (DDD Clean Architecture)
 
 ## Complete Flow Diagram
 
@@ -8,6 +8,7 @@
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ iTunes RSS API                                                              │
 │ https://itunes.apple.com/us/rss/toppodcasts/limit=100/genre=1310/json      │
+│ Lookup API: https://itunes.apple.com/lookup?id={id}&media=podcast          │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
@@ -15,109 +16,154 @@
 │                        INFRASTRUCTURE LAYER                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ 1. src/infrastructure/http/HttpClient.ts                                   │
+│    - FetchHttpClient implements HttpClient interface                       │
 │    - Executes fetch() to iTunes API                                        │
 │    - Returns raw iTunes JSON response                                      │
 │                                      │                                      │
 │                                      ▼                                      │
 │ 2. src/infrastructure/repositories/ItunesPodcastRepository.ts              │
 │    - Implements PodcastRepository interface                                │
-│    - Calls HttpClient.get(itunesUrl)                                       │
+│    - getTopPodcasts(): calls HttpClient.get(itunesRSSUrl)                  │
+│    - getPodcastDetail(): calls HttpClient.get(itunesLookupUrl)             │
 │    - Receives iTunes JSON with "im:xxx" structure                          │
 │                                      │                                      │
 │                                      ▼                                      │
 │ 3. src/infrastructure/mappers/ItunesMappers.ts                             │
-│    - mapItunesEntryToPodcast()                                             │
+│    - mapItunesEntryToPodcast(): transforms RSS entry                       │
+│    - mapItunesLookupToPodcast(): transforms lookup response                │
 │    - Transforms iTunes "im:name.label" → clean structure                   │
 │    - Extracts best quality image URL                                       │
-│    - Returns plain objects (PodcastData)                                   │
+│    - Returns plain objects (PodcastData, EpisodeData)                      │
+│                                      │                                      │
+│                                      ▼                                      │
+│ 4. src/infrastructure/cache/LocalStorageCacheRepository.ts                 │
+│    - Implements CacheRepository interface                                  │
+│    - get<T>(key): retrieves cached data with TTL validation                │
+│    - set<T>(key, data, ttl): saves data with expiration                    │
+│    - JSON.stringify/parse for persistence                                  │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           DOMAIN LAYER                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ 4. src/domain/entities/Podcast.ts                                          │
-│    - Podcast.create(podcastData)                                           │
+│ 5. src/domain/entities/Podcast.ts                                          │
+│    - Podcast.create(podcastData): factory method                           │
 │    - Creates Domain Entity with business logic                             │
 │    - getBestImageUrl(), validation rules                                   │
 │    - Uses PodcastId value object                                           │
 │                                      │                                      │
 │                                      ▼                                      │
-│ 5. src/domain/value-objects/PodcastId.ts                                   │
+│ 6. src/domain/entities/Episode.ts                                          │
+│    - Episode.create(episodeData): factory method                           │
+│    - Encapsulates episode business rules                                   │
+│    - Duration formatting, release date handling                            │
+│                                      │                                      │
+│                                      ▼                                      │
+│ 7. src/domain/value-objects/PodcastId.ts                                   │
 │    - Validates ID is positive number                                       │
 │    - Encapsulates ID business rules                                        │
+│    - Provides type safety for podcast identifiers                          │
+│                                      │                                      │
+│                                      ▼                                      │
+│ 8. src/domain/errors/DomainError.ts                                        │
+│    - PodcastNotFoundError, EpisodeNotFoundError                            │
+│    - InvalidPodcastIdError                                                 │
+│    - Domain-specific error handling                                        │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        APPLICATION LAYER                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ 6. src/application/use-cases/GetTopPodcasts.ts                             │
-│    - Orchestrates the entire flow                                          │
-│    - Checks cache first (LocalStorageCacheRepository)                      │
-│    - If cache miss: calls PodcastRepository                                │
-│    - Receives Podcast[] domain entities                                    │
-│    - Calls mapToDTO() to convert to clean DTOs                             │
+│ 9. src/application/ports/PodcastRepository.ts                              │
+│    - Interface defining repository contract                                │
+│    - getTopPodcasts(): Promise<Podcast[]>                                  │
+│    - getPodcastDetail(id): Promise<PodcastWithEpisodes>                    │
 │                                      │                                      │
 │                                      ▼                                      │
-│ 7. src/application/dto/PodcastDTO.ts                                       │
-│    - Clean interface: PodcastListDTO                                       │
-│    - { id: string, title: string, author: string, image: string }          │
-│    - UI-friendly, no domain complexity                                     │
+│ 10. src/application/ports/CacheRepository.ts                               │
+│     - Interface defining cache contract                                    │
+│     - get<T>(key): Promise<T | null>                                       │
+│     - set<T>(key, data, ttl): Promise<void>                                │
 │                                      │                                      │
 │                                      ▼                                      │
-│ 8. src/infrastructure/cache/LocalStorageCacheRepository.ts                 │
-│    - Saves PodcastListDTO[] to localStorage                                │
-│    - 24h TTL using Date.now() + ttlHours                                   │
-│    - JSON.stringify/parse for persistence                                  │
+│ 11. src/application/use-cases/GetTopPodcasts.ts                            │
+│     - Orchestrates the podcast listing flow                               │
+│     - constructor(repository, cache): dependency injection                 │
+│     - execute(): checks cache first, then repository                       │
+│     - Returns PodcastListDTO[] (clean UI format)                          │
+│                                      │                                      │
+│                                      ▼                                      │
+│ 12. src/application/use-cases/GetPodcastDetails.ts                         │
+│     - Orchestrates podcast detail with episodes flow                      │
+│     - execute(podcastId): gets podcast + episodes                          │
+│     - Returns PodcastDetailDTO with episodes                              │
+│                                      │                                      │
+│                                      ▼                                      │
+│ 13. src/application/dto/PodcastDTO.ts                                      │
+│     - PodcastListDTO: UI-friendly podcast list interface                  │
+│     - PodcastDetailDTO: detailed podcast with episodes                    │
+│     - EpisodeDTO: clean episode interface                                 │
+│     - No domain complexity, pure UI contracts                             │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        DEPENDENCY INJECTION                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ 9. src/infrastructure/di/Container.ts                                      │
-│    - Container.getInstance()                                               │
-│    - Wires up dependencies:                                                │
-│      * HttpClient → ItunesPodcastRepository                                │
-│      * LocalStorageCacheRepository → GetTopPodcasts                        │
-│    - Returns configured use case instances                                 │
+│ 14. src/app/di.ts                                                          │
+│     - Simple dependency wiring (no container pattern)                     │
+│     - Creates: FetchHttpClient → ItunesPodcastRepository                   │
+│     - Creates: LocalStorageCacheRepository                                │
+│     - Exports: getTopPodcasts, getPodcastDetails use case instances       │
+│     - Provides configured, ready-to-use dependencies                      │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           CONTEXT LAYER                                    │
+│                           UI CONTEXT LAYER                                 │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ 10. src/context/PodcastContext.tsx                                         │
-│     - usePodcast() hook                                                    │
-│     - getTopPodcasts() function                                            │
-│     - Gets container.getTopPodcasts() use case                             │
-│     - Calls useCase.execute()                                              │
-│     - Receives PodcastListDTO[]                                            │
-│     - Dispatches to React reducer                                          │
-│                                      │                                      │
-│                                      ▼                                      │
-│ 11. State Management (useReducer)                                          │
-│     - Action: SET_PODCASTS                                                 │
-│     - State: { podcasts: PodcastListDTO[], loading, error }                │
-│     - React state updated, triggers re-render                              │
+│ 15. src/ui/context/PodcastContext.tsx                                      │
+│     - PodcastProvider: React context provider                             │
+│     - usePodcast(): custom hook                                           │
+│     - loadPodcasts(): calls getTopPodcasts.execute()                      │
+│     - loadEpisodes(id): calls getPodcastDetails.execute(id)               │
+│     - State: { podcasts, loading, error, episodes }                       │
+│     - Manages React state with useState hooks                             │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                             UI LAYER                                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│ 12. src/pages/HomePage.tsx                                                 │
-│     - const { podcasts, loading, error } = usePodcast()                    │
-│     - Receives clean PodcastListDTO[]                                      │
-│     - No knowledge of iTunes API structure                                 │
-│     - Maps to <PodcastCard> components                                     │
+│ 16. src/ui/pages/Home.tsx                                                  │
+│     - const { podcasts, loading } = usePodcast()                          │
+│     - Receives clean PodcastListDTO[]                                     │
+│     - Maps to <PodcastCard> components                                    │
+│     - No knowledge of business logic or data sources                      │
 │                                      │                                      │
 │                                      ▼                                      │
-│ 13. src/components/PodcastCard.tsx                                         │
-│     - Receives: { title, author, image, onClick }                          │
-│     - Pure presentational component                                        │
-│     - Renders final UI                                                     │
+│ 17. src/ui/pages/Podcast.tsx                                               │
+│     - Shows podcast details and episodes                                  │
+│     - const { episodes } = usePodcast()                                   │
+│     - Calls loadEpisodes(podcastId) on mount                              │
+│                                      │                                      │
+│                                      ▼                                      │
+│ 18. src/ui/pages/Episode.tsx                                               │
+│     - Shows individual episode details                                    │
+│     - Pure presentational component                                       │
+│                                      │                                      │
+│                                      ▼                                      │
+│ 19. src/ui/components/PodcastCard.tsx                                      │
+│     - Receives: PodcastListDTO props                                      │
+│     - Pure presentational component                                       │
+│     - onClick navigation to podcast detail                                │
+│                                      │                                      │
+│                                      ▼                                      │
+│ 20. src/ui/components/Layout.tsx                                           │
+│     - App shell with navigation                                           │
+│     - Wraps all pages with consistent layout                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -128,7 +174,13 @@
 **File:** `src/infrastructure/http/HttpClient.ts`
 
 ```typescript
-get(url: string) → fetch(url) → Response JSON
+interface HttpClient {
+  get(url: string): Promise<unknown>
+}
+
+class FetchHttpClient implements HttpClient {
+  get(url: string) → fetch(url) → Response JSON
+}
 ```
 
 ### **Step 2: Repository Implementation**
@@ -136,7 +188,8 @@ get(url: string) → fetch(url) → Response JSON
 **File:** `src/infrastructure/repositories/ItunesPodcastRepository.ts`
 
 ```typescript
-getTopPodcasts() → httpClient.get(itunesUrl) → iTunes Raw JSON
+getTopPodcasts() → httpClient.get(itunesRSSUrl) → iTunes RSS JSON
+getPodcastDetail(id) → httpClient.get(itunesLookupUrl) → iTunes Lookup JSON
 ```
 
 ### **Step 3: Data Mapping**
@@ -145,22 +198,25 @@ getTopPodcasts() → httpClient.get(itunesUrl) → iTunes Raw JSON
 
 ```typescript
 mapItunesEntryToPodcast(itunesEntry) → Clean PodcastData object
+mapItunesLookupToPodcast(itunesResponse) → Clean PodcastData + EpisodeData[]
 ```
 
 ### **Step 4: Domain Entity Creation**
 
-**File:** `src/domain/entities/Podcast.ts`
+**Files:** `src/domain/entities/Podcast.ts`, `src/domain/entities/Episode.ts`
 
 ```typescript
 Podcast.create(podcastData) → Domain Entity with business logic
+Episode.create(episodeData) → Domain Entity with episode rules
 ```
 
 ### **Step 5: Use Case Orchestration**
 
-**File:** `src/application/use-cases/GetTopPodcasts.ts`
+**Files:** `src/application/use-cases/GetTopPodcasts.ts`, `src/application/use-cases/GetPodcastDetails.ts`
 
 ```typescript
-execute() → Repository → Domain Entities → mapToDTO() → PodcastListDTO[]
+GetTopPodcasts.execute() → Cache check → Repository → Domain Entities → DTOs
+GetPodcastDetails.execute(id) → Cache check → Repository → Domain Entities → DTOs
 ```
 
 ### **Step 6: DTO Transformation**
@@ -168,36 +224,40 @@ execute() → Repository → Domain Entities → mapToDTO() → PodcastListDTO[]
 **File:** `src/application/dto/PodcastDTO.ts`
 
 ```typescript
-Podcast Entity → PodcastListDTO (UI-friendly interface)
+Domain Entities → PodcastListDTO | PodcastDetailDTO | EpisodeDTO
 ```
 
 ### **Step 7: Dependency Injection**
 
-**File:** `src/infrastructure/di/Container.ts`
+**File:** `src/app/di.ts`
 
 ```typescript
-Container → Wired dependencies → Use Case instances
+// Simple DI without container pattern
+export const getTopPodcasts = new GetTopPodcasts(repository, cache)
+export const getPodcastDetails = new GetPodcastDetails(repository, cache)
 ```
 
 ### **Step 8: Context Integration**
 
-**File:** `src/context/PodcastContext.tsx`
+**File:** `src/ui/context/PodcastContext.tsx`
 
 ```typescript
-usePodcast() → container.getTopPodcasts().execute() → React State
+usePodcast() → getTopPodcasts.execute() → React State
+loadEpisodes(id) → getPodcastDetails.execute(id) → React State
 ```
 
 ### **Step 9: UI Consumption**
 
-**File:** `src/pages/HomePage.tsx`
+**Files:** `src/ui/pages/*.tsx`, `src/ui/components/*.tsx`
 
 ```typescript
 usePodcast() → PodcastListDTO[] → <PodcastCard> rendering
+usePodcast() → EpisodeDTO[] → Episode listing
 ```
 
 ## Data Transformation Points
 
-### **iTunes API Response:**
+### **iTunes RSS API Response:**
 
 ```json
 {
@@ -206,68 +266,164 @@ usePodcast() → PodcastListDTO[] → <PodcastCard> rendering
       {
         "im:name": { "label": "Podcast Title" },
         "im:artist": { "label": "Author Name" },
-        "im:image": [{ "label": "url1" }, { "label": "url2" }]
+        "im:image": [
+          { "label": "url1", "attributes": { "height": "55" } },
+          { "label": "url2", "attributes": { "height": "170" } }
+        ],
+        "id": { "attributes": { "im:id": "123456" } }
       }
     ]
   }
 }
 ```
 
-### **After Mapper:**
+### **iTunes Lookup API Response:**
+
+```json
+{
+  "results": [
+    {
+      "collectionId": 123456,
+      "collectionName": "Podcast Title",
+      "artistName": "Author Name",
+      "artworkUrl100": "image_url",
+      "feedUrl": "rss_feed_url"
+    }
+  ]
+}
+```
+
+### **After Infrastructure Mapper:**
 
 ```typescript
+// PodcastData (plain object)
 {
-  id: "123",
+  id: "123456",
   title: "Podcast Title",
   author: "Author Name",
-  image: "best_quality_url"
+  image: "best_quality_url",
+  description: "Description",
+  feedUrl: "rss_feed_url"
+}
+
+// EpisodeData (plain object)
+{
+  id: "episode_123",
+  title: "Episode Title",
+  description: "Episode description",
+  audioUrl: "mp3_url",
+  duration: "45:30",
+  releaseDate: "2025-01-15"
 }
 ```
 
-### **Domain Entity:**
+### **Domain Entities:**
 
 ```typescript
-Podcast {
-  private id: PodcastId,
-  private title: string,
+class Podcast {
+  private constructor(
+    private id: PodcastId,
+    private title: string,
+    private author: string,
+    private image: string,
+    private description: string
+  ) {}
+
+  static create(data: PodcastData): Podcast
   getBestImageUrl(): string // Business logic
+  getDisplayName(): string // Business logic
+}
+
+class Episode {
+  private constructor(
+    private id: string,
+    private title: string,
+    private audioUrl: string,
+    private duration: string
+  ) {}
+
+  static create(data: EpisodeData): Episode
+  getFormattedDuration(): string // Business logic
 }
 ```
 
-### **DTO (Final UI Format):**
+### **Application DTOs (Final UI Format):**
 
 ```typescript
-PodcastListDTO {
-  id: string,
-  title: string,
-  author: string,
-  image: string,
+// UI-friendly interfaces
+interface PodcastListDTO {
+  id: string
+  title: string
+  author: string
+  image: string
   description: string
 }
+
+interface PodcastDetailDTO {
+  id: string
+  title: string
+  author: string
+  image: string
+  description: string
+  episodes: EpisodeDTO[]
+}
+
+interface EpisodeDTO {
+  id: string
+  title: string
+  description: string
+  audioUrl: string
+  duration: string
+  releaseDate: string
+}
 ```
 
-### **React State:**
+### **React Context State:**
 
 ```typescript
-{
-  podcasts: PodcastListDTO[],
-  loading: boolean,
+interface PodcastContextType {
+  podcasts: PodcastListDTO[]
+  loading: boolean
   error: string | null
+  episodes: { [podcastId: string]: EpisodeDTO[] }
+  loadPodcasts: () => Promise<void>
+  loadEpisodes: (podcastId: string) => Promise<void>
 }
 ```
 
 ## Cache Flow
 
-**Cache Hit Path:**
-
+### **Cache Hit Path:**
 ```
-HomePage → Context → Use Case → Cache Repository → localStorage → Return cached DTOs
-```
-
-**Cache Miss Path:**
-
-```
-HomePage → Context → Use Case → Repository → HTTP → iTunes API → Mapper → Entity → DTO → Cache → UI
+UI → Context → Use Case → Cache Repository → localStorage → Return cached DTOs
 ```
 
-This architecture ensures clean separation of concerns with each layer having a single responsibility in the data transformation pipeline.
+### **Cache Miss Path:**
+```
+UI → Context → Use Case → Repository → HTTP → iTunes API → Mapper → Domain → DTO → Cache → UI
+```
+
+## Architecture Benefits
+
+### **Separation of Concerns:**
+- **Domain**: Pure business logic, no external dependencies
+- **Application**: Orchestrates use cases, defines contracts
+- **Infrastructure**: Implements external concerns (HTTP, cache, API mapping)
+- **UI**: Pure presentation, consumes clean DTOs
+
+### **Testability:**
+- Each layer can be tested in isolation
+- Dependency injection enables easy mocking
+- Domain entities have no external dependencies
+
+### **Maintainability:**
+- Clear boundaries between layers
+- Easy to swap implementations (e.g., different cache or HTTP client)
+- UI completely decoupled from data sources
+
+### **Clean Data Flow:**
+```
+iTunes API JSON → Infrastructure Mappers → Domain Entities → Application DTOs → UI Components
+```
+
+This DDD Clean Architecture ensures that business logic stays pure while maintaining clear separation between data transformation, business rules, and presentation concerns.

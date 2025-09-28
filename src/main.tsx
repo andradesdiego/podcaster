@@ -10,6 +10,7 @@ createRoot(document.getElementById("root")!).render(
     <App />
   </StrictMode>,
 );
+//no console logs in promise
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
