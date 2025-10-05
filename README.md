@@ -71,7 +71,7 @@ The application is deployed on Vercel with automatic CI/CD integration from the 
 - Live deployment on Vercel with automated CI/CD
 - Custom API routes for CORS handling (/api/episodes.js)
 - Environment-specific configuration (dev proxy vs production API)
-- CSS variables system with centralized design tokens
+- SCSS styling system with mixins, nesting, functions, and CSS variables
 - 24-hour intelligent caching system
 
 ## Tech Stack
@@ -80,7 +80,7 @@ The application is deployed on Vercel with automatic CI/CD integration from the 
 - **Build Tool:** Vite 5.4.10 with proxy configuration
 - **Routing:** React Router Dom (clean URLs)
 - **Testing:** Vitest 1.0.4 + Testing Library
-- **Styling:** Custom CSS + CSS Variables
+- **Styling:** SCSS + CSS Variables with mixins, nesting, and functions
 - **State:** Context API + Clean Architecture Services
 - **Cache:** localStorage with 24h TTL
 - **API:** iTunes RSS + iTunes Lookup
@@ -248,8 +248,44 @@ src/
     ├── hooks/
     │   └── useNavigationIndicator.ts # Loading indicator hook
     └── styles/
-        ├── variables.css  # Design system tokens
+        ├── variables.scss # SCSS design system with mixins and functions
         └── base.css      # Global styles and reset
+```
+
+## SCSS Architecture
+
+The project uses **SCSS (Sass)** for enhanced styling capabilities while maintaining CSS variable compatibility:
+
+### Key Features
+
+- **Mixins**: Reusable style patterns (`@mixin card-shadow`, `@mixin error-state`)
+- **Nesting**: BEM methodology with clean nesting syntax
+- **Functions**: Dynamic calculations (`spacing($multiplier)`)
+- **CSS Variables**: Centralized design tokens for runtime theming
+- **Responsive Mixins**: Breakpoint management (`@include responsive(mobile)`)
+
+### Example Usage
+
+```scss
+// variables.scss
+@mixin card-shadow {
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+
+// PodcastCard.scss
+.podcast-card {
+  @include card-shadow;  // Reusable mixin
+  padding: spacing(2.5);  // SCSS function
+
+  &__title {  // SCSS nesting
+    @include text-truncate(2);
+  }
+}
 ```
 
 ## Design Patterns and Implementation

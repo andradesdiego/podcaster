@@ -1,0 +1,68 @@
+@use '../styles/variables.scss' as *;
+
+// Podcast Card Component usando SCSS features
+.podcast-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  border-radius: var(--radius-card);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
+  cursor: pointer;
+  padding: var(--spacing-md);
+  padding-top: spacing(2.5); // Usando función SCSS
+  position: relative;
+  overflow: visible;
+
+  // Usando mixin para card shadow con hover
+  @include card-shadow;
+
+  // SCSS Nesting - Image Container
+  &__image-container {
+    position: absolute;
+    top: -65px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130px;
+    height: 130px;
+    z-index: 10;
+  }
+
+  // SCSS Nesting - Image
+  &__image {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--color-bg);
+  }
+
+  // SCSS Nesting - Content
+  &__content {
+    text-align: center;
+  }
+
+  // SCSS Nesting - Title
+  &__title {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--color-text);
+    line-height: 1.4;
+
+    // Usando mixin para truncar texto
+    @include text-truncate(2);
+  }
+
+  // SCSS Nesting - Author
+  &__author {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.3;
+
+    // Usando mixin para truncar texto
+    @include text-truncate(1);
+  }
+}
